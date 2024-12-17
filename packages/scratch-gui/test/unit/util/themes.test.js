@@ -5,7 +5,7 @@ import {
     getColorsForTheme,
     HIGH_CONTRAST_THEME
 } from '../../../src/lib/themes';
-import {injectExtensionBlockTheme, injectExtensionCategoryTheme} from '../../../src/lib/themes/blockHelpers';
+import {injectExtensionBlockIcons, injectExtensionCategoryTheme} from '../../../src/lib/themes/blockHelpers';
 import {detectTheme, persistTheme} from '../../../src/lib/themes/themePersistance';
 
 jest.mock('../../../src/lib/themes/default');
@@ -16,19 +16,19 @@ describe('themes', () => {
 
     describe('core functionality', () => {
         test('provides the default theme colors', () => {
-            expect(defaultColors.motion.primary).toEqual('#111111');
+            expect(defaultColors.motion.colourPrimary).toEqual('#111111');
         });
 
         test('returns the dark mode', () => {
             const colors = getColorsForTheme(DARK_THEME);
 
-            expect(colors.motion.primary).toEqual('#AAAAAA');
+            expect(colors.motion.colourPrimary).toEqual('#AAAAAA');
         });
 
         test('uses default theme colors when not specified', () => {
             const colors = getColorsForTheme(DARK_THEME);
 
-            expect(colors.motion.secondary).toEqual('#222222');
+            expect(colors.motion.colourSecondary).toEqual('#222222');
         });
     });
 
@@ -45,26 +45,6 @@ describe('themes', () => {
             global.XMLSerializer = XMLSerializer;
         });
 
-        test('updates extension block colors based on theme', () => {
-            const blockInfoJson = {
-                type: 'dummy_block',
-                colour: '#0FBD8C',
-                colourSecondary: '#0DA57A',
-                colourTertiary: '#0B8E69'
-            };
-
-            const updated = injectExtensionBlockTheme(blockInfoJson, DARK_THEME);
-
-            expect(updated).toEqual({
-                type: 'dummy_block',
-                colour: '#FFFFFF',
-                colourSecondary: '#EEEEEE',
-                colourTertiary: '#DDDDDD'
-            });
-            // The original value was not modified
-            expect(blockInfoJson.colour).toBe('#0FBD8C');
-        });
-
         test('updates extension block icon based on theme', () => {
             const blockInfoJson = {
                 type: 'pen_block',
@@ -73,13 +53,10 @@ describe('themes', () => {
                         type: 'field_image',
                         src: 'original'
                     }
-                ],
-                colour: '#0FBD8C',
-                colourSecondary: '#0DA57A',
-                colourTertiary: '#0B8E69'
+                ]
             };
 
-            const updated = injectExtensionBlockTheme(blockInfoJson, DARK_THEME);
+            const updated = injectExtensionBlockIcons(blockInfoJson, DARK_THEME);
 
             expect(updated).toEqual({
                 type: 'pen_block',
@@ -88,10 +65,7 @@ describe('themes', () => {
                         type: 'field_image',
                         src: 'darkPenIcon'
                     }
-                ],
-                colour: '#FFFFFF',
-                colourSecondary: '#EEEEEE',
-                colourTertiary: '#DDDDDD'
+                ]
             });
             // The original value was not modified
             expect(blockInfoJson.args0[0].src).toBe('original');
@@ -100,18 +74,24 @@ describe('themes', () => {
         test('bypasses updates if using the default theme', () => {
             const blockInfoJson = {
                 type: 'dummy_block',
-                colour: '#0FBD8C',
-                colourSecondary: '#0DA57A',
-                colourTertiary: '#0B8E69'
+                args0: [
+                    {
+                        type: 'field_image',
+                        src: 'original'
+                    }
+                ]
             };
 
-            const updated = injectExtensionBlockTheme(blockInfoJson, DEFAULT_THEME);
+            const updated = injectExtensionBlockIcons(blockInfoJson, DEFAULT_THEME);
 
             expect(updated).toEqual({
                 type: 'dummy_block',
-                colour: '#0FBD8C',
-                colourSecondary: '#0DA57A',
-                colourTertiary: '#0B8E69'
+                args0: [
+                    {
+                        type: 'field_image',
+                        src: 'original'
+                    }
+                ]
             });
         });
 
