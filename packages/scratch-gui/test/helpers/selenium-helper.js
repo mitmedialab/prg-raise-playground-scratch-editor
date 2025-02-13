@@ -343,9 +343,12 @@ class SeleniumHelper {
         // then finally click the toolbox text.
         try {
             await this.setTitle(`clickBlocksCategory ${categoryText}`);
-            await this.findByXpath('//div[contains(@class, "blocks_blocks")]');
-            await this.driver.sleep(100);
-            await this.clickText(categoryText, 'div[contains(@class, "blocks_blocks")]');
+
+            const desiredCategoryLabel = `*[contains(text(), "${categoryText}")]`;
+            const anyCategoryContainer = '*[contains(@class, "blocklyToolboxCategoryContainer")]';
+            const desiredCategoryContainer = `//${desiredCategoryLabel}/ancestor::${anyCategoryContainer}`;
+            await this.clickXpath(desiredCategoryContainer);
+
             await this.driver.sleep(500); // Wait for scroll to finish
         } catch (cause) {
             throw await enhanceError(outerError, cause);
