@@ -3,6 +3,7 @@ import SeleniumHelper from '../helpers/selenium-helper';
 
 const {
     clickText,
+    scopeForBlockId,
     clickBlocksCategory,
     clickButton,
     clickXpath,
@@ -299,7 +300,7 @@ describe('Working with the blocks', () => {
 
     test('Use variable blocks after switching languages', async () => {
         const myVariable = 'my\u00A0variable';
-        const changeVariableByScope = "*[@data-id='data_changevariableby']";
+        const changeVariableByScope = scopeForBlockId('data_changevariableby');
 
         await loadUri(uri);
 

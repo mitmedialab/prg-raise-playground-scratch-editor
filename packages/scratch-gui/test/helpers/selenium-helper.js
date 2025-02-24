@@ -98,6 +98,10 @@ class SeleniumHelper {
             'clickText',
             'clickButton',
             'clickXpath',
+            'scopeForBlockId',
+            'scopeForBlockText',
+            'scopeForCategoryId',
+            'scopeForCategoryText',
             'clickBlocksCategory',
             'elementIsVisible',
             'findByText',
@@ -149,14 +153,15 @@ class SeleniumHelper {
     get scope () {
         return {
             blocksTab: "*[@id='react-tabs-1']",
+            categoryContainer: '*[contains(@class, "blocklyToolboxCategoryContainer")]', // matches any category
+            contextMenu: '*[starts-with(@class,"react-contextmenu")]',
             costumesTab: "*[@id='react-tabs-3']",
+            menuBar: '*[contains(@class,"menu-bar_menu-bar_")]',
             modal: '*[@class="ReactModalPortal"]',
+            monitors: '*[starts-with(@class,"stage_monitor-wrapper")]',
             reportedValue: '*[@class="blocklyDropDownContent"]',
             soundsTab: "*[@id='react-tabs-5']",
-            spriteTile: '*[starts-with(@class,"react-contextmenu-wrapper")]',
-            menuBar: '*[contains(@class,"menu-bar_menu-bar_")]',
-            monitors: '*[starts-with(@class,"stage_monitor-wrapper")]',
-            contextMenu: '*[starts-with(@class,"react-contextmenu")]'
+            spriteTile: '*[starts-with(@class,"react-contextmenu-wrapper")]'
         };
     }
 
@@ -332,7 +337,47 @@ class SeleniumHelper {
     }
 
     /**
-     * Click a category in the blocks pane.
+     * Calculate an XPath expression to find a block in the blocks panel.
+     * Clicking this the element at this XPath should run the block.
+     * @param {string} blockId The identifier (opcode) of the block to find. Example: 'motion_movesteps'.
+     * @returns {string} An XPath expression that finds the block.
+     */
+    scopeForBlockId (blockId) {
+        return `*[contains(@class, "blocklyBlock") and contains(@class, "${blockId}")]`;
+    }
+
+    /**
+     * Calculate an XPath expression to find a block in the blocks panel.
+     * Clicking this the element at this XPath should run the block.
+     * @param {string} blockText The text of the block to find. Depends on the current language!
+     * @returns {string} An XPath expression that finds the block.
+     */
+    scopeForBlockText (blockText) {
+        return `*[contains(text(), "${blockText}")]/ancestor::*[contains(@class, "blocklyBlock")]`;
+    }
+
+    /**
+     * Calculate an XPath expression to find a category in the blocks panel.
+     * Clicking this the element at this XPath should scroll the category into view.
+     * @param {string} categoryId The ID of the category to find. Example: 'motion'.
+     * @returns {string} An XPath expression that finds the category.
+     */
+    scopeForCategoryId (categoryId) {
+        return `*[@id="${categoryId}"]/ancestor::${this.scope.categoryContainer}`;
+    }
+
+    /**
+     * Calculate an XPath expression to find a category in the blocks panel.
+     * Clicking this the element at this XPath should scroll the category into view.
+     * @param {string} categoryText The text of the category to find. Depends on the current language!
+     * @returns {string} An XPath expression that finds the category.
+     */
+    scopeForCategoryText (categoryText) {
+        return `*[contains(text(), "${categoryText}")]/ancestor::${this.scope.categoryContainer}`;
+    }
+
+    /**
+     * Click a category in the blocks pane, then wait to allow scroll time.
      * @param {string} categoryText The text of the category to click.
      * @returns {Promise<void>} A promise that resolves when the category is clicked.
      */
@@ -344,10 +389,8 @@ class SeleniumHelper {
         try {
             await this.setTitle(`clickBlocksCategory ${categoryText}`);
 
-            const desiredCategoryLabel = `*[contains(text(), "${categoryText}")]`;
-            const anyCategoryContainer = '*[contains(@class, "blocklyToolboxCategoryContainer")]';
-            const desiredCategoryContainer = `//${desiredCategoryLabel}/ancestor::${anyCategoryContainer}`;
-            await this.clickXpath(desiredCategoryContainer);
+            const desiredCategoryContainer = this.scopeForCategoryText(categoryText);
+            await this.clickXpath(`//${desiredCategoryContainer}`);
 
             await this.driver.sleep(500); // Wait for scroll to finish
         } catch (cause) {
