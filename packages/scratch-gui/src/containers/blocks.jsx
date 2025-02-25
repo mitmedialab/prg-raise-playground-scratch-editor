@@ -248,6 +248,7 @@ class Blocks extends React.Component {
             .then(() => {
                 this.workspace.getFlyout().setRecyclingEnabled(false);
                 this.props.vm.refreshWorkspace();
+                this.requestToolboxUpdate();
                 this.withToolboxUpdates(() => {
                     this.workspace.getFlyout().setRecyclingEnabled(true);
                 });
