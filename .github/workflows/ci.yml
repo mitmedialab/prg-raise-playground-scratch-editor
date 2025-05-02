@@ -86,3 +86,44 @@ jobs:
         uses: ./.github/actions/test-package
         with:
           package_name: scratch-gui
+
+      - name: Determine GitHub Pages directory name
+        id: branch_dir_name
+        run: |
+          if [ "$GITHUB_REF_NAME" == "develop" ]; then
+            echo "result=."
+          else
+            echo "result=${GITHUB_REF_NAME//[^A-Za-z0-9._-]/_}"
+          fi | tee --append "$GITHUB_OUTPUT"
+
+      - name: Deploy scratch-svg-renderer to GitHub Pages
+        uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./packages/scratch-svg-renderer/playground
+          destination_dir: "${{steps.branch_dir_name.outputs.result}}/scratch-svg-renderer"
+          full_commit_message: "Build for ${{ github.sha }} ${{ github.event.head_commit.message }}"
+
+      - name: Deploy scratch-render to GitHub Pages
+        uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./packages/scratch-render/playground
+          destination_dir: "${{steps.branch_dir_name.outputs.result}}/scratch-render"
+          full_commit_message: "Build for ${{ github.sha }} ${{ github.event.head_commit.message }}"
+
+      - name: Deploy scratch-vm to GitHub Pages
+        uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./packages/scratch-vm/playground
+          destination_dir: "${{steps.branch_dir_name.outputs.result}}/scratch-vm"
+          full_commit_message: "Build for ${{ github.sha }} ${{ github.event.head_commit.message }}"
+
+      - name: Deploy scratch-gui to GitHub Pages
+        uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./packages/scratch-gui/build
+          destination_dir: "${{steps.branch_dir_name.outputs.result}}/scratch-gui"
+          full_commit_message: "Build for ${{ github.sha }} ${{ github.event.head_commit.message }}"
