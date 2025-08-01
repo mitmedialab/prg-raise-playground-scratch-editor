@@ -431,7 +431,10 @@ class Blocks extends React.Component {
         this.workspace.removeChangeListener(this.toolboxUpdateChangeListener);
         const dom = this.ScratchBlocks.utils.xml.textToDom(data.xml);
         try {
-            this.ScratchBlocks.Xml.clearWorkspaceAndLoadFromXml(dom, this.workspace);
+            this.ScratchBlocks.clearWorkspaceAndLoadFromXml(
+                dom,
+                this.workspace
+            );
         } catch (error) {
             // The workspace is likely incomplete. What did update should be
             // functional.
