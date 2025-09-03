@@ -1,6 +1,6 @@
 {
   "name": "scratch-editor",
-  "version": "11.0.0",
+  "version": "11.6.0-gui-standalone",
   "private": "true",
   "description": "Scratch editor mono-repository",
   "author": "Scratch Foundation",
@@ -34,7 +34,7 @@
     "@commitlint/config-conventional": "17.8.1",
     "cross-env": "7.0.3",
     "husky": "8.0.3",
-    "npm": "10.9.2",
+    "npm": "10.9.3",
     "ts-node": "10.9.2"
   }
 }
