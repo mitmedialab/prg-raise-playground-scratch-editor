@@ -314,7 +314,7 @@ export default function (vm, useCatBlocks) {
     };
 
     ScratchBlocks.FieldNote.playNote_ = function (noteNum, extensionId) {
-        vm.runtime.emit("PLAY_NOTE", noteNum, extensionId);
+        vm.runtime.emit('PLAY_NOTE', noteNum, extensionId);
     };
 
     // Use a collator's compare instead of localeCompare which internally
