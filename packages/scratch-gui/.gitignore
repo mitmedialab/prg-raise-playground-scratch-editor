@@ -27,6 +27,3 @@ npm-*
 
 # for act
 .secrets
-
-# Generated test results
-/test-results

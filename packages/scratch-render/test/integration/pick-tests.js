@@ -52,7 +52,7 @@ const runFile = async (file, action, page, script) => {
 
             t.plan(expect.length);
             for (let x = 0; x < expect.length; x++) {
-                t.deepEqual(results[x], expect[x], expect[x][0]);
+                t.same(results[x], expect[x], expect[x][0]);
             }
             t.end();
         });
@@ -105,7 +105,7 @@ const runFile = async (file, action, page, script) => {
     await browser.close();
 })().catch(err => {
     // Handle promise rejections by exiting with a nonzero code to ensure that tests don't erroneously pass
-    // eslint-disable-next-line no-console
+     
     console.error(err.message);
     process.exit(1);
 });
