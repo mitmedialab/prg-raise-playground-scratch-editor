@@ -55,7 +55,10 @@ const Selector = props => {
             componentRef={containerRef}
             element="aside"
         >
-            <Box className={styles.listArea}>
+            <Box
+                className={styles.listArea}
+                element="ul"
+            >
                 {items.map((item, index) => (
                     <SortableAsset
                         id={item.name}
