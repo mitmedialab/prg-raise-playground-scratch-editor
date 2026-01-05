@@ -16,7 +16,6 @@ const IconButton = ({
             className,
             disabled ? styles.disabled : null
         )}
-        role="button"
         onClick={disabled ? null : onClick}
     >
         <img

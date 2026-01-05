@@ -327,7 +327,6 @@ const GUIComponent = props => {
                             selectedTabClassName={tabClassNames.tabSelected}
                             selectedTabPanelClassName={tabClassNames.tabPanelSelected}
                             onSelect={onActivateTab}
-                            // TODO: Can we render this as a <nav> element?
 
                             // TODO: focusTabOnClick should be true for accessibility, but currently conflicts
                             // with nudge operations in the paint editor. We'll likely need to manage focus
@@ -340,7 +339,6 @@ const GUIComponent = props => {
                             // Actual behavior: the Code or Sounds tab is now focused
                             focusTabOnClick={false}
                         >
-                            {/* TODO: Is the extra Box needed here? */}
                             <Box
                                 role="region"
                                 aria-label="Tab List"
@@ -354,8 +352,6 @@ const GUIComponent = props => {
                                         tabIndex="0"
                                         role="tab"
                                     >
-                                        {/* TODO: The tabs are <li>, is that semantically correct?
-                                            Should we use buttons instead? IMO no, because it also doesnt sit right */}
                                         <img
                                             draggable={false}
                                             src={codeIcon}
