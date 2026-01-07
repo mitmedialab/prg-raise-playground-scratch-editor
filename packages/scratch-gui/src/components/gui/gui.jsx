@@ -376,6 +376,7 @@ const GUIComponent = props => {
                         role="main"
                         aria-label={intl.formatMessage(ariaMessages.editor)}
                         className={styles.editorWrapper}
+                        element="main"
                     >
                         <Tabs
                             forceRenderTabPanel
@@ -400,8 +401,15 @@ const GUIComponent = props => {
                                 role="region"
                                 aria-label={intl.formatMessage(ariaMessages.tabList)}
                             >
-                                <TabList className={tabClassNames.tabList}>
-                                    <Tab className={tabClassNames.tab}>
+                                <TabList
+                                    className={tabClassNames.tabList}
+                                    role="tablist"
+                                >
+                                    <Tab
+                                        className={tabClassNames.tab}
+                                        tabIndex="0"
+                                        role="tab"
+                                    >
                                         <img
                                             draggable={false}
                                             src={codeIcon}
@@ -415,6 +423,8 @@ const GUIComponent = props => {
                                     <Tab
                                         className={tabClassNames.tab}
                                         onClick={onActivateCostumesTab}
+                                        role="tab"
+                                        tabIndex="0"
                                     >
                                         <img
                                             draggable={false}
@@ -437,6 +447,8 @@ const GUIComponent = props => {
                                     <Tab
                                         className={tabClassNames.tab}
                                         onClick={onActivateSoundsTab}
+                                        role="tab"
+                                        tabIndex="0"
                                     >
                                         <img
                                             draggable={false}
@@ -450,11 +462,15 @@ const GUIComponent = props => {
                                     </Tab>
                                 </TabList>
                             </Box>
-                            <TabPanel className={tabClassNames.tabPanel}>
+                            <TabPanel
+                                className={tabClassNames.tabPanel}
+                                role="tabpanel"
+                            >
                                 <Box
                                     className={styles.blocksWrapper}
                                     role="region"
                                     aria-label={intl.formatMessage(ariaMessages.codePanel)}
+                                    element="section"
                                 >
                                     <Blocks
                                         key={`${blocksId}/${colorMode}/${theme}`}
@@ -483,7 +499,10 @@ const GUIComponent = props => {
                                     <Watermark />
                                 </Box>
                             </TabPanel>
-                            <TabPanel className={tabClassNames.tabPanel}>
+                            <TabPanel
+                                className={tabClassNames.tabPanel}
+                                role="tabpanel"
+                            >
                                 {costumesTabVisible ? <CostumeTab
                                     ariaLabel={targetIsStage ? intl.formatMessage(ariaMessages.backdropsPanel) :
                                         intl.formatMessage(ariaMessages.costumesPanel)}
@@ -493,7 +512,10 @@ const GUIComponent = props => {
                                     onNewLibraryCostumeClick={onNewLibraryCostumeClick}
                                 /> : null}
                             </TabPanel>
-                            <TabPanel className={tabClassNames.tabPanel}>
+                            <TabPanel
+                                className={tabClassNames.tabPanel}
+                                role="tabpanel"
+                            >
                                 {soundsTabVisible ?
                                     <SoundTab
                                         ariaLabel={intl.formatMessage(ariaMessages.soundsPanel)}
@@ -515,6 +537,7 @@ const GUIComponent = props => {
                         role="complementary"
                         aria-label={intl.formatMessage(ariaMessages.stageAndTarget)}
                         className={classNames(styles.stageAndTargetWrapper, styles[stageSize])}
+                        element="aside"
                     >
                         <StageWrapper
                             isFullScreen={isFullScreen}
@@ -529,6 +552,7 @@ const GUIComponent = props => {
                             className={styles.targetWrapper}
                             role="region"
                             aria-label={intl.formatMessage(ariaMessages.targetPane)}
+                            element="section"
                         >
                             <TargetPane
                                 stageSize={stageSize}

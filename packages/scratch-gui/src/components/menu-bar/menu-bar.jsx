@@ -439,6 +439,7 @@ class MenuBar extends React.Component {
                 )}
                 aria-label={this.props.ariaLabel}
                 role={this.props.ariaRole}
+                element="header"
             >
                 <div className={styles.mainMenu}>
                     <div className={styles.fileGroup}>

@@ -140,6 +140,7 @@ const ExtensionButton = props => {
 
     return (
         <Box className={styles.extensionButtonContainer}>
+            {/* TODO: Add focus indicator */}
             <button
                 className={
                     classNames(styles.extensionButton,

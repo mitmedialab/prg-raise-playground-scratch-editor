@@ -34,6 +34,7 @@ const StageWrapperComponent = function (props) {
             dir={isRtl ? 'rtl' : 'ltr'}
             role={ariaRole}
             aria-label={ariaLabel}
+            element="section"
         >
             <Box className={styles.stageMenuWrapper}>
                 <StageHeader

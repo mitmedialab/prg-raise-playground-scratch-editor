@@ -50,7 +50,7 @@ describe('Menu bar settings', () => {
 
     test('Share button should NOT be enabled', async () => {
         await loadUri(uri);
-        await findByXpath('//div[span[div[span[text()="Share"]]] and @data-tip="tooltip"]');
+        await findByXpath('//div[button[div[span[text()="Share"]]] and @data-tip="tooltip"]');
     });
 
     test('Logo should be clickable', async () => {

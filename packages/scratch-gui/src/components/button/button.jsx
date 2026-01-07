@@ -27,18 +27,17 @@ const ButtonComponent = ({
     );
 
     return (
-        <span
+        <button
             className={classNames(
                 styles.outlinedButton,
                 className
             )}
-            role="button"
             onClick={onClick}
             {...props}
         >
             {icon}
             <div className={styles.content}>{children}</div>
-        </span>
+        </button>
     );
 };
 

@@ -14,20 +14,24 @@ const GreenFlagComponent = function (props) {
         ...componentProps
     } = props;
     return (
-        <img
-            className={classNames(
-                className,
-                styles.greenFlag,
-                {
-                    [styles.isActive]: active
-                }
-            )}
-            draggable={false}
-            src={greenFlagIcon}
-            title={title}
+        <button
+            className={styles.greenFlagButton}
             onClick={onClick}
             {...componentProps}
-        />
+        >
+            <img
+                className={classNames(
+                    className,
+                    styles.greenFlag,
+                    {
+                        [styles.isActive]: active
+                    }
+                )}
+                draggable={false}
+                src={greenFlagIcon}
+                title={title}
+            />
+        </button>
     );
 };
 GreenFlagComponent.propTypes = {

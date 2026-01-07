@@ -29,6 +29,8 @@ const SpriteSelectorItem = props => {
                 asChild
             >
                 <div
+                    role="button"
+                    tabIndex={0}
                     className={classNames(props.className, styles.spriteSelectorItem, {
                         [styles.isSelected]: props.selected
                     })}
