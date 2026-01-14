@@ -27,7 +27,7 @@ const FilterComponent = props => {
 
     const handleClear = useCallback(e => {
         onClear(e);
-        
+
         // Return focus to the input after clearing
         if (inputRef?.current) {
             inputRef.current.focus();
@@ -53,6 +53,7 @@ const FilterComponent = props => {
                 onChange={onChange}
             />
             <button
+                type="button"
                 className={styles.xIconWrapper}
                 onClick={handleClear}
                 aria-label={intl.formatMessage(ariaLabel)}

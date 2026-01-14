@@ -63,9 +63,9 @@ class StageSelector extends React.Component {
     componentWillUnmount () {
         document.removeEventListener('touchend', this.handleTouchEnd);
     }
-    
+
     static contextType = ModalFocusContext;
-    
+
     handleTouchEnd (e) {
         const {x, y} = getEventXY(e);
         const {top, left, bottom, right} = this.ref.getBoundingClientRect();

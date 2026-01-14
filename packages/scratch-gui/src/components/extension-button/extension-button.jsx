@@ -141,7 +141,7 @@ const ExtensionButton = props => {
 
         captureFocus();
         onExtensionButtonClick?.();
-    }, [shouldShowFaceSensingCallouts, captureFocus, onExtensionButtonClick, username]);
+    }, [shouldShowFaceSensingCallouts, captureFocus, onExtensionButtonClick]);
 
     return (
         <Box className={styles.extensionButtonContainer}>

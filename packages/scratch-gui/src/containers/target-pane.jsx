@@ -61,7 +61,7 @@ class TargetPane extends React.Component {
     }
 
     static contextType = ModalFocusContext;
-     
+
     handleChangeSpriteDirection (direction) {
         this.props.vm.postSpriteInfo({direction});
     }

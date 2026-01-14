@@ -71,7 +71,7 @@ class LibraryItem extends React.PureComponent {
         if (e.key === KEY.SPACE) {
             e.preventDefault();
             e.stopPropagation();
-            
+
             if (this.props.showPlayButton) {
                 this.handlePlay();
             } else {

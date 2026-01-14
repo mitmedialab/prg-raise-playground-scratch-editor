@@ -81,7 +81,6 @@ class SoundTab extends React.Component {
     }
 
     static contextType = ModalFocusContext;
-    
 
     handleSelectSound (soundIndex) {
         this.setState({selectedSoundIndex: soundIndex});
