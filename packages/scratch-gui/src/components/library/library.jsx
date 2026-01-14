@@ -19,6 +19,7 @@ import {CATEGORIES} from '../../../src/lib/libraries/decks/index.jsx';
 import {getLocalStorageValue, setLocalStorageValue} from '../../lib/local-storage.js';
 
 import styles from './library.css';
+import {ModalFocusContext} from '../../contexts/modal-focus-context.jsx';
 
 const localStorageAvailable =
     'localStorage' in window && window.localStorage !== null;
@@ -218,6 +219,9 @@ class LibraryComponent extends React.Component {
 
         this.filteredDataRef.removeEventListener('scroll', this.handleScroll);
     }
+
+    static contextType = ModalFocusContext;
+
     handleScroll () {
         if (this.animationFrameId) return;
 
@@ -248,6 +252,7 @@ class LibraryComponent extends React.Component {
     }
     handleClose () {
         this.props.onRequestClose();
+        this.context.restoreFocus();
     }
     handleTagClick (tag) {
         if (this.state.playingItem === null) {
@@ -402,6 +407,10 @@ class LibraryComponent extends React.Component {
                 </div>));
     }
     render () {
+        // TODO: Should the close button be focused first or last when the modal opens?
+        // Focusing it first helps users quickly close the modal if opened by mistake.
+        // It's also at the top left, being the first element that will be read by screen readers.
+        // However, users can always close the modal with ESC as well.
         return (
             <Modal
                 fullScreen

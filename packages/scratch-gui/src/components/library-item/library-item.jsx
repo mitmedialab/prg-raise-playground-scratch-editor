@@ -58,7 +58,14 @@ class LibraryItemComponent extends React.PureComponent {
                     this.props.hidden ? styles.hidden : null,
                     this.props.showItemCallout ? styles.radiate : null
                 )}
+                role="button"
+                tabIndex={0}
                 onClick={this.props.onClick}
+                onKeyDown={this.props.onKeyDown}
+                // onFocus and onBlur are currently unused for extensions,
+                // but are included for potential future use
+                onBlur={this.props.onBlur}
+                onFocus={this.props.onFocus}
             >
                 <div className={styles.contentWrapper}>
                     <div className={styles.featuredImageContainer}>
@@ -152,7 +159,7 @@ class LibraryItemComponent extends React.PureComponent {
                 onBlur={this.props.onBlur}
                 onClick={this.props.onClick}
                 onFocus={this.props.onFocus}
-                onKeyPress={this.props.onKeyPress}
+                onKeyDown={this.props.onKeyDown}
                 onMouseEnter={this.props.showPlayButton ? null : this.props.onMouseEnter}
                 onMouseLeave={this.props.showPlayButton ? null : this.props.onMouseLeave}
             >
@@ -202,7 +209,7 @@ LibraryItemComponent.propTypes = {
     onBlur: PropTypes.func.isRequired,
     onClick: PropTypes.func.isRequired,
     onFocus: PropTypes.func.isRequired,
-    onKeyPress: PropTypes.func.isRequired,
+    onKeyDown: PropTypes.func.isRequired,
     onMouseEnter: PropTypes.func.isRequired,
     onMouseLeave: PropTypes.func.isRequired,
     onPlay: PropTypes.func.isRequired,

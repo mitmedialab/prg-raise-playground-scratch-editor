@@ -1,4 +1,4 @@
-import React, {useEffect, useCallback, useState, useRef} from 'react';
+import React, {useEffect, useCallback, useState, useRef, useContext} from 'react';
 import classNames from 'classnames';
 // eslint-disable-next-line import/no-unresolved
 import {driver} from 'driver.js';
@@ -13,6 +13,7 @@ import {getLocalStorageValue, setLocalStorageValue} from '../../lib/local-storag
 import addExtensionIcon from '../gui/icon--extensions.svg';
 import styles from './extension-button.css';
 import './extension-button.raw.css';
+import {ModalFocusContext} from '../../contexts/modal-focus-context.jsx';
 
 const messages = defineMessages({
     addExtension: {
@@ -62,6 +63,8 @@ const ExtensionButton = props => {
     } = props;
 
     const driverRef = useRef(null);
+    const {captureFocus} = useContext(ModalFocusContext);
+
     // Keep in a state to avoid reads from localStorage on every render.
     const [shouldShowFaceSensingCallouts, setShouldShowFaceSensingCallouts] =
         useState(showNewFeatureCallouts && !hasIntroducedFaceSensing(username) && !hasUsedFaceSensing(username));
@@ -135,8 +138,10 @@ const ExtensionButton = props => {
             setHasIntroducedFaceSensing(username);
             setShouldShowFaceSensingCallouts(false);
         }
+
+        captureFocus();
         onExtensionButtonClick?.();
-    }, [shouldShowFaceSensingCallouts]);
+    }, [shouldShowFaceSensingCallouts, captureFocus, onExtensionButtonClick, username]);
 
     return (
         <Box className={styles.extensionButtonContainer}>
