@@ -74,6 +74,10 @@ const ExtensionButton = props => {
         if (!shouldShowFaceSensingCallouts) return;
 
         const onFirstInteraction = e => {
+            // Make sure to clean up event listeners after first interaction
+            window.removeEventListener('click', onFirstInteraction);
+            window.removeEventListener('keydown', onFirstInteraction);
+
             const isExtensionButtonVisible = document.querySelector('div[class*="extension-button-container"]');
             if (!isExtensionButtonVisible) return;
 
@@ -102,10 +106,6 @@ const ExtensionButton = props => {
             setClicked(true);
             driverRef.current = tooltip;
             tooltip.drive();
-
-            // Make sure to clean up event listeners after first interaction
-            window.removeEventListener('click', onFirstInteraction);
-            window.removeEventListener('keydown', onFirstInteraction);
         };
 
         window.addEventListener('click', onFirstInteraction, {once: true});

@@ -179,6 +179,10 @@ class LibraryComponent extends React.Component {
         // We need to create the driver when the content is loaded for the target element to exist
         if (!prevState.loaded && this.state.loaded && this.state.shouldShowFaceSensingCallout) {
             const onFirstInteraction = e => {
+                // Make sure to clean up event listeners after first interaction
+                window.removeEventListener('click', onFirstInteraction);
+                window.removeEventListener('keydown', onFirstInteraction);
+
                 const isExtensionItemVisible = document.getElementById('faceSensing');
                 if (!isExtensionItemVisible) return;
 
@@ -206,10 +210,6 @@ class LibraryComponent extends React.Component {
 
                 this.driver = tooltip;
                 tooltip.drive();
-                
-                // Make sure to clean up event listeners after first interaction
-                window.removeEventListener('click', onFirstInteraction);
-                window.removeEventListener('keydown', onFirstInteraction);
             };
 
             window.addEventListener('click', onFirstInteraction, {once: true});
