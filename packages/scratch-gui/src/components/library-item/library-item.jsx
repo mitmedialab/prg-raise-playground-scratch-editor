@@ -46,7 +46,7 @@ class LibraryItemComponent extends React.PureComponent {
     }
     render () {
         return this.props.featured ? (
-            <div
+            <button
                 id={this.props.extensionId}
                 className={classNames(
                     styles.libraryItem,
@@ -58,8 +58,6 @@ class LibraryItemComponent extends React.PureComponent {
                     this.props.hidden ? styles.hidden : null,
                     this.props.showItemCallout ? styles.radiate : null
                 )}
-                role="button"
-                tabIndex={0}
                 onClick={this.props.onClick}
                 onKeyDown={this.props.onKeyDown}
                 // onFocus and onBlur are currently unused for extensions,
@@ -146,7 +144,7 @@ class LibraryItemComponent extends React.PureComponent {
                             </div>
                         ) : null}
                 </div>
-            </div>
+            </button>
         ) : (
             <Box
                 className={classNames(
@@ -154,8 +152,7 @@ class LibraryItemComponent extends React.PureComponent {
                         [styles.hidden]: this.props.hidden
                     }
                 )}
-                role="button"
-                tabIndex="0"
+                element="button"
                 onBlur={this.props.onBlur}
                 onClick={this.props.onClick}
                 onFocus={this.props.onFocus}

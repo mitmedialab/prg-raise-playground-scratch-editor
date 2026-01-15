@@ -178,9 +178,14 @@ class LibraryComponent extends React.Component {
 
         // We need to create the driver when the content is loaded for the target element to exist
         if (!prevState.loaded && this.state.loaded && this.state.shouldShowFaceSensingCallout) {
-            const onFirstClick = () => {
+            const onFirstInteraction = e => {
                 const isExtensionItemVisible = document.getElementById('faceSensing');
                 if (!isExtensionItemVisible) return;
+
+                if (e.type === 'keydown') {
+                    // Prevent focus from jumping to the next element in the tab order after keydown finishes
+                    e.preventDefault();
+                }
 
                 const tooltip = driver({
                     allowClose: false,
@@ -188,7 +193,7 @@ class LibraryComponent extends React.Component {
                     overlayColor: 'transparent',
                     popoverOffset: -2,
                     steps: [{
-                        element: 'div[id="faceSensing"]',
+                        element: 'button[id="faceSensing"]',
                         popover: {
                             description: this.props.intl.formatMessage(messages.faceSensingModalCallout),
                             side: 'left',
@@ -201,9 +206,15 @@ class LibraryComponent extends React.Component {
 
                 this.driver = tooltip;
                 tooltip.drive();
+                
+                // Make sure to clean up event listeners after first interaction
+                window.removeEventListener('click', onFirstInteraction);
+                window.removeEventListener('keydown', onFirstInteraction);
             };
 
-            window.addEventListener('click', onFirstClick, {once: true});
+            window.addEventListener('click', onFirstInteraction, {once: true});
+            window.addEventListener('keydown', onFirstInteraction, {once: true});
+            
             this.filteredDataRef.addEventListener('scroll', this.handleScroll);
         }
     }
@@ -407,10 +418,6 @@ class LibraryComponent extends React.Component {
                 </div>));
     }
     render () {
-        // TODO: Should the close button be focused first or last when the modal opens?
-        // Focusing it first helps users quickly close the modal if opened by mistake.
-        // It's also at the top left, being the first element that will be read by screen readers.
-        // However, users can always close the modal with ESC as well.
         return (
             <Modal
                 fullScreen

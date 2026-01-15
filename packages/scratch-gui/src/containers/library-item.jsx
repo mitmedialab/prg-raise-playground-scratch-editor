@@ -59,14 +59,8 @@ class LibraryItem extends React.PureComponent {
             this.props.onSelect(this.props.id);
         }
         /*
-        Previously, pressing SPACE would select a Costume, Sprite, Sound, or Backdrop, but there was a bug:
-        - If the modal was opened from the Sounds page, SPACE played the sound selected in the sound editor
-        - SPACE never worked for Sounds, and only worked for Sprites/Backdrops when not opened from the Sound Editor.
-
-        This implementation fixes that:
-        - Costumes, Sprites, and Backdrops are selectable with both ENTER and SPACE.
-        - Sounds are selectable with ENTER; SPACE previews the sound.
-        TODO: Confirm if this behavior is correct and intuitive.
+            - Costumes, Sprites, and Backdrops are selectable with both ENTER and SPACE.
+            - Sounds are selectable with ENTER; SPACE previews the sound.
         */
         if (e.key === KEY.SPACE) {
             e.preventDefault();

@@ -73,9 +73,14 @@ const ExtensionButton = props => {
     useEffect(() => {
         if (!shouldShowFaceSensingCallouts) return;
 
-        const onFirstClick = () => {
+        const onFirstInteraction = e => {
             const isExtensionButtonVisible = document.querySelector('div[class*="extension-button-container"]');
             if (!isExtensionButtonVisible) return;
+
+            if (e.type === 'keydown') {
+                // Prevent focus from jumping to the next element in the tab order after keydown finishes
+                e.preventDefault();
+            }
 
             const tooltip = driver({
                 allowClose: false,
@@ -97,8 +102,14 @@ const ExtensionButton = props => {
             setClicked(true);
             driverRef.current = tooltip;
             tooltip.drive();
+
+            // Make sure to clean up event listeners after first interaction
+            window.removeEventListener('click', onFirstInteraction);
+            window.removeEventListener('keydown', onFirstInteraction);
         };
-        window.addEventListener('click', onFirstClick, {once: true});
+
+        window.addEventListener('click', onFirstInteraction, {once: true});
+        window.addEventListener('keydown', onFirstInteraction, {once: true});
 
         return () => {
             if (driverRef.current) {
@@ -145,7 +156,6 @@ const ExtensionButton = props => {
 
     return (
         <Box className={styles.extensionButtonContainer}>
-            {/* TODO: Add focus indicator */}
             <button
                 className={
                     classNames(styles.extensionButton,
@@ -153,6 +163,7 @@ const ExtensionButton = props => {
                     )}
                 title={intl.formatMessage(messages.addExtension)}
                 onClick={handleExtensionButtonClick}
+                aria-label={intl.formatMessage(messages.addExtension)}
             >
                 <img
                     className={styles.extensionButtonIcon}
