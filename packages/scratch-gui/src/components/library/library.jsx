@@ -61,11 +61,18 @@ const messages = defineMessages({
         id: `gui.library.prompts`,
         defaultMessage: 'Prompts',
         description: 'Label for prompts category'
+    },
+    membershipTag: {
+        defaultMessage: 'Membership',
+        description: 'Tag for filtering a library for member only assets',
+        id: 'gui.library.membershipTag'
     }
 });
 
 const ALL_TAG = {tag: 'all', intlLabel: messages.allTag};
 const tagListPrefix = [ALL_TAG];
+
+const MEMBERSHIP_TAG = {tag: 'membership', intlLabel: messages.membershipTag};
 
 /**
  * Find the AssetType which corresponds to a particular file extension. For example, 'png' => AssetType.ImageBitmap.
@@ -161,6 +168,7 @@ class LibraryComponent extends React.Component {
         };
 
         this.driver = null;
+        this.memberAssetTagList = this.props.data.some(item => item.isMemberOnly) ? [MEMBERSHIP_TAG] : [];
     }
     componentDidMount () {
         // Allow the spinner to display before loading the content
@@ -366,6 +374,7 @@ class LibraryComponent extends React.Component {
             onMouseLeave={this.handleMouseLeave}
             onSelect={this.handleSelect}
             showItemCallout={this.state.shouldShowFaceSensingCallout && data.extensionId === 'faceSensing'}
+            isMemberOnly={data.isMemberOnly}
         />);
     }
     renderData (data) {
@@ -429,13 +438,14 @@ class LibraryComponent extends React.Component {
                         )}
                         {this.props.tags &&
                             <div className={styles.tagWrapper}>
-                                {tagListPrefix.concat(this.props.tags).map((tagProps, id) => (
+                                {tagListPrefix.concat(this.props.tags, this.memberAssetTagList).map((tagProps, id) => (
                                     <TagButton
                                         active={this.state.selectedTag === tagProps.tag.toLowerCase()}
                                         className={classNames(
                                             styles.filterBarItem,
                                             styles.tagButton,
-                                            tagProps.className
+                                            tagProps.className,
+                                            {[styles.membershipTag]: tagProps.tag.toLowerCase() === MEMBERSHIP_TAG.tag}
                                         )}
                                         key={`tag-button-${id}`}
                                         onClick={this.handleTagClick}

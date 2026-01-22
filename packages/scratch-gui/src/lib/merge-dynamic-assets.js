@@ -1,4 +1,26 @@
 /**
+ * Maps a dynamic asset object to a new object based on its visibility.
+ * If the asset is public, returns it unchanged.
+ * Otherwise, marks it as member-only and adds a 'membership' tag.
+ * @param {object} item - The asset object to map.
+ * @param {boolean} item.isPublic - Indicates if the asset is public.
+ * @param {boolean} [item.isMemberOnly] - Indicates if the asset is member-only.
+ * @param {string[]} [item.tags] - The tags associated with the asset.
+ * @returns {object} The mapped asset object.
+ */
+const mapDynamicAsset = item => {
+    if (item.isPublic) {
+        return item;
+    }
+
+    return {
+        ...item,
+        isMemberOnly: true,
+        tags: [...(item.tags || []), 'membership']
+    };
+};
+
+/**
  * Merge static and dynamic assets, using name as key, giving precedence to dynamic assets
  * @param {Array} staticAssets the static assets bundled with the editor
  * @param {Array} dynamicAssets an array of dynamic assets loaded at runtime
@@ -13,7 +35,7 @@ const mergeDynamicAssets = (staticAssets, dynamicAssets) => {
     if (effectiveDynamicAssets.length > 0) {
         const map = new Map();
         staticAssets.forEach(item => map.set(item.name, item));
-        effectiveDynamicAssets.forEach(item => map.set(item.name, item));
+        effectiveDynamicAssets.forEach(item => map.set(item.name, mapDynamicAsset(item)));
         data = Array.from(map.values());
         data.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     }

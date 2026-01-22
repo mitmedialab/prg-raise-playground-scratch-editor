@@ -136,6 +136,7 @@ class LibraryItem extends React.PureComponent {
                 onPlay={this.handlePlay}
                 onStop={this.handleStop}
                 showItemCallout={this.props.showItemCallout}
+                isMemberOnly={this.props.isMemberOnly}
             />
         );
     }
@@ -173,7 +174,8 @@ LibraryItem.propTypes = {
     onSelect: PropTypes.func.isRequired,
     platform: PropTypes.oneOf(Object.keys(PLATFORM)),
     showPlayButton: PropTypes.bool,
-    showItemCallout: PropTypes.bool
+    showItemCallout: PropTypes.bool,
+    isMemberOnly: PropTypes.bool
 };
 
 export default compose(

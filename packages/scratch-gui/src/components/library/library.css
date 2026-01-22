@@ -47,9 +47,8 @@ html body .library-scroll-grid {
     flex-direction: row;
     justify-content: flex-start;
     align-items: center;
-    height: calc($library-filter-bar-height + 2rem); /* padding */
     background-color: $looks-transparent;
-    padding: 0 1rem;
+    padding: 1rem;
     font-size: .875rem;
 }
 
@@ -80,8 +79,7 @@ html body .library-scroll-grid {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    height: $library-filter-bar-height;
-    overflow: hidden;
+    row-gap: .5rem;
 }
 
 .spinner-wrapper {
@@ -90,4 +88,8 @@ html body .library-scroll-grid {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.membership-tag {
+    background-color: $membership-blue;
 }
