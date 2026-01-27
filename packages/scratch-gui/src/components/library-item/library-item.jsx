@@ -7,7 +7,6 @@ import Box from '../box/box.jsx';
 import ScratchImage from '../scratch-image/scratch-image.jsx';
 import PlayButton from '../../containers/play-button.jsx';
 import styles from './library-item.css';
-import './library-item.raw.css';
 import classNames from 'classnames';
 
 import bluetoothIconURL from './bluetooth.svg';
@@ -55,8 +54,7 @@ class LibraryItemComponent extends React.PureComponent {
                         [styles.disabled]: this.props.disabled
                     },
                     this.props.extensionId ? styles.libraryItemExtension : null,
-                    this.props.hidden ? styles.hidden : null,
-                    this.props.showItemCallout ? styles.radiate : null
+                    this.props.hidden ? styles.hidden : null
                 )}
                 onClick={this.props.onClick}
                 onKeyDown={this.props.onKeyDown}
@@ -212,8 +210,7 @@ LibraryItemComponent.propTypes = {
     onPlay: PropTypes.func.isRequired,
     onStop: PropTypes.func.isRequired,
     platform: PropTypes.oneOf(Object.keys(PLATFORM)),
-    showPlayButton: PropTypes.bool,
-    showItemCallout: PropTypes.bool
+    showPlayButton: PropTypes.bool
 };
 
 LibraryItemComponent.defaultProps = {

@@ -189,7 +189,6 @@ const GUIComponent = props => {
         onTelemetryModalOptOut,
         onUpdateProjectThumbnail,
         showComingSoon,
-        showNewFeatureCallouts,
         soundsTabVisible,
         stageSizeMode,
         targetIsStage,
@@ -486,16 +485,11 @@ const GUIComponent = props => {
                                             theme={theme}
                                             vm={vm}
                                             colorMode={colorMode}
-                                            showNewFeatureCallouts={showNewFeatureCallouts}
-                                            username={username}
                                         />
                                     </Box>
                                     <ExtensionsButton
-                                        activeTabIndex={activeTabIndex}
                                         intl={intl}
-                                        showNewFeatureCallouts={showNewFeatureCallouts}
                                         onExtensionButtonClick={onExtensionButtonClick}
-                                        username={username}
                                     />
                                     <Box className={styles.watermark}>
                                         <Watermark />
