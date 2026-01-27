@@ -72,6 +72,8 @@ const messages = defineMessages({
 const ALL_TAG = {tag: 'all', intlLabel: messages.allTag};
 const tagListPrefix = [ALL_TAG];
 
+// Membership tag manually added to the tag list if any member-only assets are present.
+// Member-only assets are displayed as a separate tag to allow users to filter by them.
 const MEMBERSHIP_TAG = {tag: 'membership', intlLabel: messages.membershipTag};
 
 /**
@@ -144,6 +146,8 @@ const setHasUsedFaceSensing = (username = 'guest') => {
     setLocalStorageValue('hasUsedFaceSensing', username, true);
 };
 
+const getMemberOnlyTags = data => (data && data.some(item => item.isMemberOnly) ? [MEMBERSHIP_TAG] : []);
+
 class LibraryComponent extends React.Component {
     constructor (props) {
         super(props);
@@ -164,11 +168,11 @@ class LibraryComponent extends React.Component {
             filterQuery: '',
             selectedTag: ALL_TAG.tag,
             loaded: false,
-            shouldShowFaceSensingCallout: props.showNewFeatureCallouts && !hasUsedFaceSensing(props.username)
+            shouldShowFaceSensingCallout: props.showNewFeatureCallouts && !hasUsedFaceSensing(props.username),
+            memberTags: getMemberOnlyTags(props.data)
         };
 
         this.driver = null;
-        this.memberAssetTagList = this.props.data.some(item => item.isMemberOnly) ? [MEMBERSHIP_TAG] : [];
     }
     componentDidMount () {
         // Allow the spinner to display before loading the content
@@ -178,6 +182,12 @@ class LibraryComponent extends React.Component {
         if (this.props.setStopHandler) this.props.setStopHandler(this.handlePlayingEnd);
     }
     componentDidUpdate (prevProps, prevState) {
+        if (prevProps.data !== this.props.data) {
+            this.setState({
+                memberTags: getMemberOnlyTags(this.props.data)
+            });
+        }
+
         if (prevState.filterQuery !== this.state.filterQuery ||
             prevState.selectedTag !== this.state.selectedTag) {
             this.scrollToTop();
@@ -438,7 +448,7 @@ class LibraryComponent extends React.Component {
                         )}
                         {this.props.tags &&
                             <div className={styles.tagWrapper}>
-                                {tagListPrefix.concat(this.props.tags, this.memberAssetTagList).map((tagProps, id) => (
+                                {tagListPrefix.concat(this.props.tags, this.state.memberTags).map((tagProps, id) => (
                                     <TagButton
                                         active={this.state.selectedTag === tagProps.tag.toLowerCase()}
                                         className={classNames(
