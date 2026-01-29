@@ -2,15 +2,17 @@
   "name": "@scratch/scratch-gui",
   "version": "12.6.0",
   "description": "Graphical User Interface for creating and running Scratch 3.0 projects",
-  "author": "Massachusetts Institute of Technology",
-  "license": "AGPL-3.0-only",
+  "keywords": [],
   "homepage": "https://github.com/scratchfoundation/scratch-gui#readme",
+  "bugs": {
+    "url": "https://github.com/scratchfoundation/scratch-editor/issues"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/scratchfoundation/scratch-editor.git"
+    "url": "git+https://github.com/scratchfoundation/scratch-editor.git"
   },
-  "main": "./dist/scratch-gui.js",
-  "types": "./dist/types/index.d.ts",
+  "license": "AGPL-3.0-only",
+  "author": "Massachusetts Institute of Technology",
   "exports": {
     ".": {
       "types": "./dist/types/index.d.ts",
@@ -33,6 +35,12 @@
       "default": "./dist/scratch-gui-standalone.js"
     }
   },
+  "main": "./dist/scratch-gui.js",
+  "types": "./dist/types/index.d.ts",
+  "directories": {
+    "doc": "docs",
+    "test": "test"
+  },
   "files": [
     "dist",
     "src",
@@ -46,17 +54,59 @@
     "build:dist-standalone": "cross-env NODE_ENV=production BUILD_TYPE=dist-standalone webpack",
     "clean": "rimraf build dist",
     "deploy": "touch build/.nojekyll && gh-pages -t -d build -m \"[skip ci] Build for $(git log --pretty=format:%H -n1)\"",
-    "prepare": "node scripts/prepare.mjs",
-    "prune": "./prune-gh-pages.sh",
     "i18n:push": "tx-push-src scratch-editor interface translations/en.json",
     "i18n:src": "rimraf ./translations/messages/src && babel src > tmp.js && rimraf tmp.js && build-i18n-src ./translations/messages/src ./translations/",
+    "prepare": "node scripts/prepare.mjs",
+    "prune": "./prune-gh-pages.sh",
     "start": "webpack serve",
     "test": "npm run test:lint && npm run test:unit && npm run test:integration",
     "test:integration": "cross-env JEST_JUNIT_OUTPUT_NAME=integration-tests-results.xml jest --maxWorkers=4 test[\\\\/]integration",
     "test:lint": "eslint",
-    "test:unit": "cross-env JEST_JUNIT_OUTPUT_NAME=unit-tests-results.xml jest test[\\\\/]unit",
     "test:smoke": "jest --runInBand test[\\\\/]smoke",
+    "test:unit": "cross-env JEST_JUNIT_OUTPUT_NAME=unit-tests-results.xml jest test[\\\\/]unit",
     "watch": "webpack --watch"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "js",
+      "tsx",
+      "jsx"
+    ],
+    "moduleNameMapper": {
+      "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)\\??$": "<rootDir>/test/__mocks__/fileMock.js",
+      "\\.(css|less)$": "<rootDir>/test/__mocks__/styleMock.js",
+      "editor-msgs(\\.js)?$": "<rootDir>/test/__mocks__/editor-msgs-mock.js"
+    },
+    "reporters": [
+      "default",
+      [
+        "jest-junit",
+        {
+          "outputDirectory": "test-results"
+        }
+      ]
+    ],
+    "setupFiles": [
+      "raf/polyfill"
+    ],
+    "testEnvironment": "jsdom",
+    "testPathIgnorePatterns": [
+      "src/test.js"
+    ],
+    "transform": {
+      "^.+\\.tsx?$": [
+        "ts-jest",
+        {
+          "isolatedModules": true,
+          "tsconfig": "<rootDir>/tsconfig.test.json"
+        }
+      ],
+      "^.+\\.jsx?$": "babel-jest"
+    },
+    "transformIgnorePatterns": [
+      "/node_modules/(?!intl-messageformat|intl-messageformat-parser).+\\.js$"
+    ]
   },
   "dependencies": {
     "@mediapipe/face_detection": "0.4.1646425229",
@@ -129,12 +179,6 @@
     "wav-encoder": "1.3.0",
     "xhr": "2.6.0"
   },
-  "peerDependencies": {
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0",
-    "react-redux": "^8.0.0",
-    "redux": "^4.0.0"
-  },
   "devDependencies": {
     "@babel/cli": "7.28.6",
     "@babel/core": "7.28.6",
@@ -181,46 +225,10 @@
     "webpack-dev-server": "5.2.3",
     "yauzl": "3.2.0"
   },
-  "jest": {
-    "setupFiles": [
-      "raf/polyfill"
-    ],
-    "reporters": [
-      "default",
-      [
-        "jest-junit",
-        {
-          "outputDirectory": "test-results"
-        }
-      ]
-    ],
-    "testEnvironment": "jsdom",
-    "testPathIgnorePatterns": [
-      "src/test.js"
-    ],
-    "moduleNameMapper": {
-      "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)\\??$": "<rootDir>/test/__mocks__/fileMock.js",
-      "\\.(css|less)$": "<rootDir>/test/__mocks__/styleMock.js",
-      "editor-msgs(\\.js)?$": "<rootDir>/test/__mocks__/editor-msgs-mock.js"
-    },
-    "transformIgnorePatterns": [
-      "/node_modules/(?!intl-messageformat|intl-messageformat-parser).+\\.js$"
-    ],
-    "moduleFileExtensions": [
-      "ts",
-      "js",
-      "tsx",
-      "jsx"
-    ],
-    "transform": {
-      "^.+\\.tsx?$": [
-        "ts-jest",
-        {
-          "isolatedModules": true,
-          "tsconfig": "<rootDir>/tsconfig.test.json"
-        }
-      ],
-      "^.+\\.jsx?$": "babel-jest"
-    }
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-redux": "^8.0.0",
+    "redux": "^4.0.0"
   }
 }

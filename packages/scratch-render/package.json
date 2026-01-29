@@ -2,19 +2,27 @@
   "name": "@scratch/scratch-render",
   "version": "12.6.0",
   "description": "WebGL Renderer for Scratch 3.0",
-  "author": "Massachusetts Institute of Technology",
-  "license": "AGPL-3.0-only",
+  "keywords": [],
   "homepage": "https://github.com/scratchfoundation/scratch-render#readme",
+  "bugs": {
+    "url": "https://github.com/scratchfoundation/scratch-editor/issues"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/scratchfoundation/scratch-editor.git"
+    "url": "git+https://github.com/scratchfoundation/scratch-editor.git"
   },
-  "main": "./dist/node/scratch-render.js",
+  "license": "AGPL-3.0-only",
+  "author": "Massachusetts Institute of Technology",
   "exports": {
     "webpack": "./src/index.js",
     "browser": "./dist/web/scratch-render.js",
     "node": "./dist/node/scratch-render.js",
     "default": "./src/index.js"
+  },
+  "main": "./dist/node/scratch-render.js",
+  "directories": {
+    "doc": "docs",
+    "test": "test"
   },
   "files": [
     "dist",
@@ -27,15 +35,12 @@
     "clean": "rimraf dist playground",
     "docs": "jsdoc -c .jsdoc.json",
     "lint": "eslint",
-    "prepublish": "npm run build",
     "prepublish-watch": "npm run watch",
+    "prepublish": "npm run build",
     "start": "webpack-dev-server",
     "tap": "tap test/unit test/integration",
     "test": "npm run lint && npm run tap",
     "watch": "webpack --progress --watch --watch-poll"
-  },
-  "tap": {
-    "allow-incomplete-coverage": true
   },
   "browserslist": [
     "Chrome >= 63",
@@ -45,6 +50,9 @@
     "Android >= 63",
     "iOS >= 8"
   ],
+  "tap": {
+    "allow-incomplete-coverage": true
+  },
   "dependencies": {
     "@scratch/scratch-svg-renderer": "12.6.0",
     "grapheme-breaker": "0.3.2",
@@ -54,9 +62,6 @@
     "raw-loader": "0.5.1",
     "tslog": "4.10.2",
     "twgl.js": "4.24.0"
-  },
-  "peerDependencies": {
-    "scratch-render-fonts": "^1.0.0"
   },
   "devDependencies": {
     "@babel/core": "7.28.6",
@@ -83,5 +88,8 @@
     "webpack": "5.104.1",
     "webpack-cli": "5.1.4",
     "webpack-dev-server": "5.2.3"
+  },
+  "peerDependencies": {
+    "scratch-render-fonts": "^1.0.0"
   }
 }

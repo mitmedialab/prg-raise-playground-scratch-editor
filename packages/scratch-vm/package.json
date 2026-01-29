@@ -2,15 +2,17 @@
   "name": "@scratch/scratch-vm",
   "version": "12.6.0",
   "description": "Virtual Machine for Scratch 3.0",
-  "author": "Massachusetts Institute of Technology",
-  "license": "AGPL-3.0-only",
+  "keywords": [],
   "homepage": "https://github.com/scratchfoundation/scratch-vm#readme",
+  "bugs": {
+    "url": "https://github.com/scratchfoundation/scratch-editor/issues"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/scratchfoundation/scratch-editor.git"
+    "url": "git+https://github.com/scratchfoundation/scratch-editor.git"
   },
-  "main": "./dist/node/scratch-vm.js",
-  "browser": "./dist/web/scratch-vm.js",
+  "license": "AGPL-3.0-only",
+  "author": "Massachusetts Institute of Technology",
   "exports": {
     ".": {
       "webpack": "./src/index.js",
@@ -19,6 +21,12 @@
       "default": "./src/index.js"
     },
     "./src/extension-support/block-type": "./src/extension-support/block-type"
+  },
+  "main": "./dist/node/scratch-vm.js",
+  "browser": "./dist/web/scratch-vm.js",
+  "directories": {
+    "doc": "docs",
+    "test": "test"
   },
   "files": [
     "dist",
@@ -31,14 +39,14 @@
     "clean": "rimraf dist playground",
     "coverage": "tap ./test/{unit,integration}/*.js --coverage --coverage-report=lcov",
     "docs": "jsdoc -c .jsdoc.json",
-    "i18n:src": "mkdirp translations/core && format-message extract --out-file translations/core/en.json src/extensions/**/index.js",
     "i18n:push": "tx-push-src scratch-editor extensions translations/core/en.json",
+    "i18n:src": "mkdirp translations/core && format-message extract --out-file translations/core/en.json src/extensions/**/index.js",
     "lint": "eslint && format-message lint src/**/*.js",
     "prepublish": "in-publish && npm run build || not-in-publish",
     "start": "webpack serve",
     "tap": "tap ./test/{unit,integration}/*.js",
-    "tap:unit": "tap ./test/unit/*.js",
     "tap:integration": "tap ./test/integration/*.js",
+    "tap:unit": "tap ./test/unit/*.js",
     "test": "npm run lint && npm run tap",
     "watch": "webpack --progress --watch"
   },
