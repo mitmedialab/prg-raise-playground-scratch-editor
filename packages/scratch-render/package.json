@@ -81,7 +81,7 @@
     "scratch-semantic-release-config": "4.0.1",
     "scratch-storage": "6.1.2",
     "scratch-webpack-configuration": "3.1.1",
-    "semantic-release": "19.0.5",
+    "semantic-release": "25.0.2",
     "tap": "21.5.0",
     "terser-webpack-plugin": "5.3.16",
     "typedoc": "0.28.16",
