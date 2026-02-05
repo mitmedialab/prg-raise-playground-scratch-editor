@@ -211,7 +211,7 @@ const GUIComponent = props => {
         const handleDocumentClick = () => {
             // If any element is focused, blur it.
             // Usually handled automatically but canvas clicks don't seem to blur previous focus.
-            if (document.activeElement) {
+            if (document.activeElement !== document.body) {
                 document.activeElement.blur();
             }
         };
