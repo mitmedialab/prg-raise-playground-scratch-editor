@@ -105,6 +105,15 @@ class CostumeTab extends React.Component {
             this.state = {selectedCostumeIndex: 0};
         }
     }
+    componentDidMount () {
+        this.handleDocumentClick = () => {
+            if (document.activeElement !== document.body) {
+                document.activeElement.blur();
+            }
+        };
+        document.addEventListener('mousedown', this.handleDocumentClick);
+    }
+
     componentWillReceiveProps (nextProps) {
         const {
             editingTarget,
@@ -132,6 +141,10 @@ class CostumeTab extends React.Component {
             // If switching editing targets, update the costume index
             this.setState({selectedCostumeIndex: target.currentCostume});
         }
+    }
+
+    componentWillUnmount () {
+        document.removeEventListener('mousedown', this.handleDocumentClick);
     }
     static contextType = ModalFocusContext;
 
