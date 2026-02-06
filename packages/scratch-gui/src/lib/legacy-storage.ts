@@ -13,7 +13,7 @@ export class LegacyStorage implements GUIStorage {
     private translator?: TranslatorFunction;
 
     readonly scratchStorage = new ScratchStorage();
-    readonly backpackStorage = new LegacyBackpackStorage();
+    readonly backpackStorage = new LegacyBackpackStorage('x-token');
 
     constructor () {
         this.cacheDefaultProject(this.scratchStorage);

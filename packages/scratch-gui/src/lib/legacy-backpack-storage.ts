@@ -24,6 +24,10 @@ export class LegacyBackpackStorage implements GUIBackpackStorage {
     private host?: string;
     private webStoreRegistered = false;
 
+    constructor(
+        private tokenHeader: 'x-token' | 'authorization'
+    ) {}
+
     // TODO: This is unsafe to call multiple times. It's fine in our usages for now, but should
     //       maybe be updated to remove the old webStore setting before adding the new one
     setHostAndRegisterWebStore(host: string, scratchStorage: ScratchStorage): void {
@@ -49,7 +53,9 @@ export class LegacyBackpackStorage implements GUIBackpackStorage {
             xhr({
                 method: 'GET',
                 uri: `${host}/${request.username}?limit=${request.limit}&offset=${request.offset}`,
-                headers: {'x-token': request.token},
+                headers: this.tokenHeader === 'x-token' ?
+                    {'x-token': request.token} :
+                    {Authorization: `Bearer ${request.token}`},
                 json: true
             }, (error, response) => {
                 if (error || response.statusCode !== 200) {
@@ -75,7 +81,9 @@ export class LegacyBackpackStorage implements GUIBackpackStorage {
                 xhr({
                     method: 'POST',
                     uri: `${host}/${item.username}`,
-                    headers: {'x-token': item.token},
+                    headers: this.tokenHeader === 'x-token' ?
+                        {'x-token': item.token} :
+                        {Authorization: `Bearer ${item.token}`},
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- the type of the json param is wrong here
                     json: {
                         type: item.type,
@@ -105,7 +113,9 @@ export class LegacyBackpackStorage implements GUIBackpackStorage {
             xhr({
                 method: 'DELETE',
                 uri: `${host}/${item.username}/${item.id}`,
-                headers: {'x-token': item.token}
+                headers: this.tokenHeader === 'x-token' ?
+                    {'x-token': item.token} :
+                    {Authorization: `Bearer ${item.token}`}
             }, (error, response) => {
                 if (error || response.statusCode !== 200) {
                     return reject(new Error(String(response.statusCode)));
