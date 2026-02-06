@@ -38,33 +38,20 @@ export interface GUIBackpackStorage {
     list(request: BackpackListItemsInput): Promise<BackpackItem[]>;
     save(item: BackpackSaveItemInput, data: SerializableData): Promise<BackpackItem>;
     delete(item: BackpackDeleteItemInput): Promise<void>;
+    setSession?(session: BackpackSession | null): void;
+}
+
+export interface BackpackSession {
+    username: string;
+    token: string;
 }
 
 export interface BackpackListItemsInput {
-    /**
-     * The username of the currently-logged in user
-     */
-    username: string,
-
-    /**
-     * The auth token given to GUI in props
-     */
-    token: string,
     limit: number,
     offset: number
 }
 
 export interface BackpackSaveItemInput {
-    /**
-     * The username of the currently-logged in user
-     */
-    username: string,
-
-    /**
-     * The auth token given to GUI in props
-     */
-    token: string,
-
     /**
      * Type of backpack object
      */
@@ -83,9 +70,7 @@ export interface SerializableData {
 }
 
 export interface BackpackDeleteItemInput {
-    id: string,
-    username: string,
-    token: string
+    id: string
 }
 
 export type BackpackItemType = 'costume' | 'sound' | 'script' | 'sprite';
@@ -151,6 +136,7 @@ export const GUIBackpackStoragePropType = PropTypes.shape({
     list: PropTypes.func.isRequired,
     save: PropTypes.func.isRequired,
     delete: PropTypes.func.isRequired,
+    setSession: PropTypes.func,
 });
 
 export const GUIStoragePropType = PropTypes.shape({

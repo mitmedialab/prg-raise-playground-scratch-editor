@@ -49,10 +49,26 @@ class Backpack extends React.Component {
         if (props.host) {
             props.storage.setBackpackHost?.(props.host);
         }
+        // Set initial session
+        this.updateBackpackSession(props);
     }
     componentDidMount () {
         this.props.vm.addListener('BLOCK_DRAG_END', this.handleBlockDragEnd);
         this.props.vm.addListener('BLOCK_DRAG_UPDATE', this.handleBlockDragUpdate);
+    }
+    componentDidUpdate (prevProps) {
+        // Update session when credentials change
+        if (prevProps.username !== this.props.username || prevProps.token !== this.props.token) {
+            this.updateBackpackSession(this.props);
+        }
+    }
+    updateBackpackSession (props) {
+        const {username, token} = props;
+        if (username && token) {
+            props.storage.backpackStorage?.setSession?.({username, token});
+        } else {
+            props.storage.backpackStorage?.setSession?.(null);
+        }
     }
     componentWillUnmount () {
         this.props.vm.removeListener('BLOCK_DRAG_END', this.handleBlockDragEnd);
@@ -112,8 +128,6 @@ class Backpack extends React.Component {
                     const serializableData = new PayloadSerializableData(payload);
                     return backpackStorage.save(
                         {
-                            token: this.props.token,
-                            username: this.props.username,
                             type: serializableData.getType(),
                             name: serializableData.getName()
                         },
@@ -135,8 +149,6 @@ class Backpack extends React.Component {
     handleDelete (id) {
         this.setState({loading: true}, () => {
             this.props.storage.backpackStorage.delete({
-                token: this.props.token,
-                username: this.props.username,
                 id: id
             })
                 .then(() => {
@@ -155,8 +167,6 @@ class Backpack extends React.Component {
         if (this.props.token && this.props.username) {
             this.setState({loading: true, error: false}, () => {
                 this.props.storage.backpackStorage.list({
-                    token: this.props.token,
-                    username: this.props.username,
                     offset: this.state.contents.length,
                     limit: this.state.itemsPerPage
                 })
