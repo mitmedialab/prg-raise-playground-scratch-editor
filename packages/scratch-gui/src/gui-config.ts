@@ -10,6 +10,7 @@ export interface GUIConfig {
 
 export interface GUIStorage {
     scratchStorage: ScratchStorage;
+    backpackStorage?: GUIBackpackStorage;
 
     // Called multiple times (as changes happen)
     setProjectHost?(host: string): void;
@@ -31,8 +32,108 @@ export interface GUIStorage {
     ): Promise<{ id: ProjectId }>;
 
     saveProjectThumbnail?(projectId: ProjectId, thumbnail: Blob): void;
+}
 
-    // TODO: Support backpack storage
+export interface GUIBackpackStorage {
+    list(request: BackpackListItemsInput): Promise<BackpackItem[]>;
+    save(item: BackpackSaveItemInput, data: SerializableData): Promise<BackpackItem>;
+    delete(item: BackpackDeleteItemInput): Promise<void>;
+}
+
+export interface BackpackListItemsInput {
+    /**
+     * The username of the currently-logged in user
+     */
+    username: string,
+
+    /**
+     * The auth token given to GUI in props
+     */
+    token: string,
+    limit: number,
+    offset: number
+}
+
+export interface BackpackSaveItemInput {
+    /**
+     * The username of the currently-logged in user
+     */
+    username: string,
+
+    /**
+     * The auth token given to GUI in props
+     */
+    token: string,
+
+    /**
+     * Type of backpack object
+     */
+    type: BackpackItemType,
+
+    /**
+     * User-facing name of the object being saved
+     */
+    name: string,
+}
+
+export interface SerializableData {
+    mimeType(): string,
+    dataAsBase64(): Promise<string>,
+    thumbnailAsBase64(): Promise<string>
+}
+
+export interface BackpackDeleteItemInput {
+    id: string,
+    username: string,
+    token: string
+}
+
+export type BackpackItemType = 'costume' | 'sound' | 'script' | 'sprite';
+
+export interface BackpackItem {
+    /**
+     * A unique identifier for the backpack item.
+     * UUID format.
+     */
+    id: string,
+
+    /**
+     * Name of the item
+     */
+    name: string,
+
+    /**
+     * The type of backpack item
+     */
+    type: BackpackItemType,
+
+    /**
+     * The path (URL without host) of the thumbnail
+     */
+    thumbnail: string,
+
+    /**
+     * The full URL (incl. host) of the thumbnail
+     */
+    thumbnailUrl: string,
+
+    /**
+     * The md5ext of the backpack item.
+     *
+     * Different backpack items are loaded from different places:
+     *
+     * - costume -> the md5ext specified here is loaded from
+     *              the asset server (has to be registered on the storage instance)
+     * - sound -> same as above
+     * - script -> loaded from the backpack server using `bodyUrl`. The `body` field isn't used.
+     * - sprite -> same as above
+     */
+    body: string,
+
+    /**
+     * The full URL (incl. host) of the backpack body
+     */
+    bodyUrl: string,
 }
 
 export type TranslatorFunction = (
@@ -46,8 +147,15 @@ export interface MessageObject {
     defaultMessage: string;
 }
 
+export const GUIBackpackStoragePropType = PropTypes.shape({
+    list: PropTypes.func.isRequired,
+    save: PropTypes.func.isRequired,
+    delete: PropTypes.func.isRequired,
+});
+
 export const GUIStoragePropType = PropTypes.shape({
     scratchStorage: PropTypes.object.isRequired,
+    backpackStorage: GUIBackpackStoragePropType,
 
     setProjectHost: PropTypes.func,
     setProjectToken: PropTypes.func,

@@ -2,15 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import bindAll from 'lodash.bindall';
 import BackpackComponent from '../components/backpack/backpack.jsx';
-import {
-    getBackpackContents,
-    saveBackpackObject,
-    deleteBackpackObject,
-    soundPayload,
-    costumePayload,
-    spritePayload,
-    codePayload
-} from '../lib/backpack-api';
+import soundPayload from '../lib/backpack/sound-payload';
+import costumePayload from '../lib/backpack/costume-payload';
+import spritePayload from '../lib/backpack/sprite-payload';
+import codePayload from '../lib/backpack/code-payload';
+import {PayloadSerializableData} from '../lib/backpack/payload-serializable-data.ts';
 import DragConstants from '../lib/drag-constants';
 import DropAreaHOC from '../lib/drop-area-hoc.jsx';
 import {GUIStoragePropType} from '../gui-config';
@@ -74,6 +70,7 @@ class Backpack extends React.Component {
     }
     handleDrop (dragInfo) {
         const scratchStorage = this.props.storage.scratchStorage;
+        const backpackStorage = this.props.storage.backpackStorage;
 
         let payloader = null;
         let presaveAsset = null;
@@ -111,12 +108,18 @@ class Backpack extends React.Component {
                     }
                     return payload;
                 })
-                .then(payload => saveBackpackObject({
-                    host: this.props.host,
-                    token: this.props.token,
-                    username: this.props.username,
-                    ...payload
-                }))
+                .then(payload => {
+                    const serializableData = new PayloadSerializableData(payload);
+                    return backpackStorage.save(
+                        {
+                            token: this.props.token,
+                            username: this.props.username,
+                            type: serializableData.getType(),
+                            name: serializableData.getName()
+                        },
+                        serializableData
+                    );
+                })
                 .then(item => {
                     this.setState({
                         loading: false,
@@ -131,8 +134,7 @@ class Backpack extends React.Component {
     }
     handleDelete (id) {
         this.setState({loading: true}, () => {
-            deleteBackpackObject({
-                host: this.props.host,
+            this.props.storage.backpackStorage.delete({
                 token: this.props.token,
                 username: this.props.username,
                 id: id
@@ -152,8 +154,7 @@ class Backpack extends React.Component {
     getContents () {
         if (this.props.token && this.props.username) {
             this.setState({loading: true, error: false}, () => {
-                getBackpackContents({
-                    host: this.props.host,
+                this.props.storage.backpackStorage.list({
                     token: this.props.token,
                     username: this.props.username,
                     offset: this.state.contents.length,
