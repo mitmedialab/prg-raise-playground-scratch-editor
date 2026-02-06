@@ -4,7 +4,6 @@ import {
     GUIBackpackStorage,
     BackpackListItemsInput,
     BackpackSaveItemInput,
-    BackpackDeleteItemInput,
     BackpackItem,
     BackpackSession,
     SerializableData
@@ -21,19 +20,50 @@ const includeFullUrls = (item: BackpackItemWithoutUrls, host: string): BackpackI
     bodyUrl: `${host}/${item.body}`
 });
 
+export interface LegacyBackpackStorageConfig {
+    /**
+     * Reads the current authentication session - necessary for making a backpack request.
+     *
+     * It can be called with a missing session if the session was not set on the Redux store.
+     * In general, the session will be missing when the Standalone version of the editor is used.
+     */
+    readAuth(session: BackpackSession | undefined): Promise<LegacyBackpackAuth>
+}
+
+export interface LegacyBackpackAuth {
+    /**
+     * The username of the user. This is part of the request URL so it's mandatory
+     */
+    username: string,
+
+    /**
+     * The authentication type - only these two are supported by this backpack service.
+     */
+    authType: 'x-token' | 'jwt'
+
+    /**
+     * The token to be provided as authentication
+     */
+    authToken: string
+}
+
 export class LegacyBackpackStorage implements GUIBackpackStorage {
     private host?: string;
     private webStoreRegistered = false;
     private session?: BackpackSession;
 
     constructor(
-        private tokenHeader: 'x-token' | 'authorization'
+        private config: LegacyBackpackStorageConfig
     ) {}
 
     /**
      * Set the session for backpack API requests.
+     *
+     * This is only used by the non-standalone version of the editor, where the session
+     * is taken directly from scratch-www's Redux store. In all other cases this will be
+     * missing.
      */
-    setSession(session: BackpackSession | null): void {
+    setSession(session: BackpackSession | undefined): void {
         this.session = session ?? undefined;
     }
 
@@ -52,24 +82,21 @@ export class LegacyBackpackStorage implements GUIBackpackStorage {
         }
     }
 
-    list(request: BackpackListItemsInput): Promise<BackpackItem[]> {
+    async list(request: BackpackListItemsInput): Promise<BackpackItem[]> {
         const host = this.host;
         if (!host) {
             return Promise.reject(new Error('Backpack host not set'));
         }
 
-        const session = this.session;
-        if (!session) {
-            return Promise.reject(new Error('Backpack credentials not set'));
-        }
+        const auth = await this.config.readAuth(this.session);
 
         return new Promise((resolve, reject) => {
             xhr({
                 method: 'GET',
-                uri: `${host}/${session.username}?limit=${request.limit}&offset=${request.offset}`,
-                headers: this.tokenHeader === 'x-token' ?
-                    {'x-token': session.token} :
-                    {Authorization: `Bearer ${session.token}`},
+                uri: `${host}/${auth.username}?limit=${request.limit}&offset=${request.offset}`,
+                headers: auth.authType === 'x-token' ?
+                    {'x-token': auth.authToken} :
+                    {Authorization: `Bearer ${auth.authToken}`},
                 json: true
             }, (error, response) => {
                 if (error || response.statusCode !== 200) {
@@ -81,16 +108,13 @@ export class LegacyBackpackStorage implements GUIBackpackStorage {
         });
     }
 
-    save(item: BackpackSaveItemInput, data: SerializableData): Promise<BackpackItem> {
+    async save(item: BackpackSaveItemInput, data: SerializableData): Promise<BackpackItem> {
         const host = this.host;
         if (!host) {
             return Promise.reject(new Error('Backpack host not set'));
         }
 
-        const session = this.session;
-        if (!session) {
-            return Promise.reject(new Error('Backpack credentials not set'));
-        }
+        const auth = await this.config.readAuth(this.session);
 
         return Promise.all([
             data.dataAsBase64(),
@@ -99,10 +123,10 @@ export class LegacyBackpackStorage implements GUIBackpackStorage {
             return new Promise<BackpackItem>((resolve, reject) => {
                 xhr({
                     method: 'POST',
-                    uri: `${host}/${session.username}`,
-                    headers: this.tokenHeader === 'x-token' ?
-                        {'x-token': session.token} :
-                        {Authorization: `Bearer ${session.token}`},
+                    uri: `${host}/${auth.username}`,
+                    headers: auth.authType === 'x-token' ?
+                        {'x-token': auth.authToken} :
+                        {Authorization: `Bearer ${auth.authToken}`},
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- the type of the json param is wrong here
                     json: {
                         type: item.type,
@@ -122,24 +146,21 @@ export class LegacyBackpackStorage implements GUIBackpackStorage {
         });
     }
 
-    delete(item: BackpackDeleteItemInput): Promise<void> {
+    async delete(id: string): Promise<void> {
         const host = this.host;
         if (!host) {
             return Promise.reject(new Error('Backpack host not set'));
         }
 
-        const session = this.session;
-        if (!session) {
-            return Promise.reject(new Error('Backpack credentials not set'));
-        }
+        const auth = await this.config.readAuth(this.session);
 
         return new Promise((resolve, reject) => {
             xhr({
                 method: 'DELETE',
-                uri: `${host}/${session.username}/${item.id}`,
-                headers: this.tokenHeader === 'x-token' ?
-                    {'x-token': session.token} :
-                    {Authorization: `Bearer ${session.token}`}
+                uri: `${host}/${auth.username}/${id}`,
+                headers: auth.authType === 'x-token' ?
+                    {'x-token': auth.authToken} :
+                    {Authorization: `Bearer ${auth.authToken}`},
             }, (error, response) => {
                 if (error || response.statusCode !== 200) {
                     return reject(new Error(String(response.statusCode)));

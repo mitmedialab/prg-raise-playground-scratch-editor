@@ -13,7 +13,19 @@ export class LegacyStorage implements GUIStorage {
     private translator?: TranslatorFunction;
 
     readonly scratchStorage = new ScratchStorage();
-    readonly backpackStorage = new LegacyBackpackStorage('x-token');
+    readonly backpackStorage = new LegacyBackpackStorage({
+        readAuth(session) {
+            if (!session) {
+                return Promise.reject(new Error('missing session'));
+            }
+
+            return Promise.resolve({
+                username: session.username,
+                authType: 'x-token',
+                authToken: session.token
+            })
+        },
+    });
 
     constructor () {
         this.cacheDefaultProject(this.scratchStorage);

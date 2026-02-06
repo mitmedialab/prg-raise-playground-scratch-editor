@@ -67,7 +67,7 @@ class Backpack extends React.Component {
         if (username && token) {
             props.storage.backpackStorage?.setSession?.({username, token});
         } else {
-            props.storage.backpackStorage?.setSession?.(null);
+            props.storage.backpackStorage?.setSession?.(undefined);
         }
     }
     componentWillUnmount () {
@@ -148,9 +148,7 @@ class Backpack extends React.Component {
     }
     handleDelete (id) {
         this.setState({loading: true}, () => {
-            this.props.storage.backpackStorage.delete({
-                id: id
-            })
+            this.props.storage.backpackStorage.delete(id)
                 .then(() => {
                     this.setState({
                         loading: false,

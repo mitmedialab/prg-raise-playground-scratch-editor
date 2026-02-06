@@ -35,10 +35,11 @@ export interface GUIStorage {
 }
 
 export interface GUIBackpackStorage {
+    setSession?(session: BackpackSession | undefined): void;
+
     list(request: BackpackListItemsInput): Promise<BackpackItem[]>;
     save(item: BackpackSaveItemInput, data: SerializableData): Promise<BackpackItem>;
-    delete(item: BackpackDeleteItemInput): Promise<void>;
-    setSession?(session: BackpackSession | null): void;
+    delete(id: string): Promise<void>;
 }
 
 export interface BackpackSession {
@@ -67,10 +68,6 @@ export interface SerializableData {
     mimeType(): string,
     dataAsBase64(): Promise<string>,
     thumbnailAsBase64(): Promise<string>
-}
-
-export interface BackpackDeleteItemInput {
-    id: string
 }
 
 export type BackpackItemType = 'costume' | 'sound' | 'script' | 'sprite';
