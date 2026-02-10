@@ -162,25 +162,23 @@ class Backpack extends React.Component {
         });
     }
     getContents () {
-        if (this.props.token && this.props.username) {
-            this.setState({loading: true, error: false}, () => {
-                this.props.storage.backpackStorage.list({
-                    offset: this.state.contents.length,
-                    limit: this.state.itemsPerPage
-                })
-                    .then(contents => {
-                        this.setState({
-                            contents: this.state.contents.concat(contents),
-                            moreToLoad: contents.length === this.state.itemsPerPage,
-                            loading: false
-                        });
-                    })
-                    .catch(error => {
-                        this.setState({error: true, loading: false});
-                        throw error;
+        this.setState({loading: true, error: false}, () => {
+            this.props.storage.backpackStorage.list({
+                offset: this.state.contents.length,
+                limit: this.state.itemsPerPage
+            })
+                .then(contents => {
+                    this.setState({
+                        contents: this.state.contents.concat(contents),
+                        moreToLoad: contents.length === this.state.itemsPerPage,
+                        loading: false
                     });
-            });
-        }
+                })
+                .catch(error => {
+                    this.setState({error: true, loading: false});
+                    throw error;
+                });
+        });
     }
     handleBlockDragUpdate (isOutsideWorkspace) {
         this.setState({
