@@ -125,6 +125,12 @@ class Backpack extends React.Component {
                     return payload;
                 })
                 .then(payload => {
+                    if (!backpackStorage) {
+                        // Shouldn't happen as this component shouldn't be rendered without a backpack, but
+                        // adding this just in case
+                        return;
+                    }
+
                     const serializableData = new PayloadSerializableData(payload);
                     return backpackStorage.save(
                         {
