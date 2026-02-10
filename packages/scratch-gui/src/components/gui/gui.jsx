@@ -689,11 +689,11 @@ GUIComponent.defaultProps = {
 
 const mapStateToProps = state => ({
     // This is the button's mode, as opposed to the actual current state
-    backpackConfigured: !!state.scratchGui.config.storage?.backpackStorage,
     blocksId: state.scratchGui.timeTravel.year.toString(),
     stageSizeMode: state.scratchGui.stageSize.stageSize,
     colorMode: state.scratchGui.settings.colorMode,
-    theme: state.scratchGui.settings.theme
+    theme: state.scratchGui.settings.theme,
+    backpackConfigured: !!state.scratchGui.config.storage?.backpackStorage
 });
 
 const mapDispatchToProps = dispatch => ({

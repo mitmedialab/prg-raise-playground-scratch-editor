@@ -35,7 +35,7 @@ export interface GUIStorage {
 }
 
 export interface GUIBackpackStorage {
-    setSession?(session: BackpackSession | undefined): void;
+    setSession?(session: BackpackSession | null | undefined): void;
 
     list(request: BackpackListItemsInput): Promise<BackpackItem[]>;
     save(item: BackpackSaveItemInput, data: SerializableData): Promise<BackpackItem>;
@@ -133,7 +133,7 @@ export const GUIBackpackStoragePropType = PropTypes.shape({
     list: PropTypes.func.isRequired,
     save: PropTypes.func.isRequired,
     delete: PropTypes.func.isRequired,
-    setSession: PropTypes.func,
+    setSession: PropTypes.func
 });
 
 export const GUIStoragePropType = PropTypes.shape({

@@ -62,17 +62,17 @@ class Backpack extends React.Component {
             this.updateBackpackSession(this.props);
         }
     }
+    componentWillUnmount () {
+        this.props.vm.removeListener('BLOCK_DRAG_END', this.handleBlockDragEnd);
+        this.props.vm.removeListener('BLOCK_DRAG_UPDATE', this.handleBlockDragUpdate);
+    }
     updateBackpackSession (props) {
         const {username, token} = props;
         if (username && token) {
             props.storage.backpackStorage?.setSession?.({username, token});
         } else {
-            props.storage.backpackStorage?.setSession?.(undefined);
+            props.storage.backpackStorage?.setSession?.(null);
         }
-    }
-    componentWillUnmount () {
-        this.props.vm.removeListener('BLOCK_DRAG_END', this.handleBlockDragEnd);
-        this.props.vm.removeListener('BLOCK_DRAG_UPDATE', this.handleBlockDragUpdate);
     }
     handleToggle () {
         const newState = !this.state.expanded;

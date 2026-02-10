@@ -27,7 +27,7 @@ export interface LegacyBackpackStorageConfig {
      * It can be called with a missing session if the session was not set on the Redux store.
      * In general, the session will be missing when the Standalone version of the editor is used.
      */
-    readAuth(session: BackpackSession | undefined): Promise<LegacyBackpackAuth>
+    readAuth(session: BackpackSession | null | undefined): Promise<LegacyBackpackAuth>
 }
 
 export interface LegacyBackpackAuth {
@@ -50,9 +50,9 @@ export interface LegacyBackpackAuth {
 export class LegacyBackpackStorage implements GUIBackpackStorage {
     private host?: string;
     private webStoreRegistered = false;
-    private session?: BackpackSession;
+    private session: BackpackSession | null | undefined = null;
 
-    constructor(
+    constructor (
         private config: LegacyBackpackStorageConfig
     ) {}
 
@@ -63,13 +63,13 @@ export class LegacyBackpackStorage implements GUIBackpackStorage {
      * is taken directly from scratch-www's Redux store. In all other cases this will be
      * missing.
      */
-    setSession(session: BackpackSession | undefined): void {
-        this.session = session ?? undefined;
+    setSession (session: BackpackSession | null | undefined): void {
+        this.session = session;
     }
 
     // TODO: This is unsafe to call multiple times. It's fine in our usages for now, but should
     //       maybe be updated to remove the old webStore setting before adding the new one
-    setHostAndRegisterWebStore(host: string, scratchStorage: ScratchStorage): void {
+    setHostAndRegisterWebStore (host: string, scratchStorage: ScratchStorage): void {
         this.host = host;
 
         if (!this.webStoreRegistered) {
@@ -82,7 +82,7 @@ export class LegacyBackpackStorage implements GUIBackpackStorage {
         }
     }
 
-    async list(request: BackpackListItemsInput): Promise<BackpackItem[]> {
+    async list (request: BackpackListItemsInput): Promise<BackpackItem[]> {
         const host = this.host;
         if (!host) {
             return Promise.reject(new Error('Backpack host not set'));
@@ -108,7 +108,7 @@ export class LegacyBackpackStorage implements GUIBackpackStorage {
         });
     }
 
-    async save(item: BackpackSaveItemInput, data: SerializableData): Promise<BackpackItem> {
+    async save (item: BackpackSaveItemInput, data: SerializableData): Promise<BackpackItem> {
         const host = this.host;
         if (!host) {
             return Promise.reject(new Error('Backpack host not set'));
@@ -119,34 +119,31 @@ export class LegacyBackpackStorage implements GUIBackpackStorage {
         return Promise.all([
             data.dataAsBase64(),
             data.thumbnailAsBase64()
-        ]).then(([body, thumbnail]) => {
-            return new Promise<BackpackItem>((resolve, reject) => {
-                xhr({
-                    method: 'POST',
-                    uri: `${host}/${auth.username}`,
-                    headers: auth.authType === 'x-token' ?
-                        {'x-token': auth.authToken} :
-                        {Authorization: `Bearer ${auth.authToken}`},
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- the type of the json param is wrong here
-                    json: {
-                        type: item.type,
-                        mime: data.mimeType(),
-                        name: item.name,
+        ]).then(([body, thumbnail]) => new Promise<BackpackItem>((resolve, reject) => {
+            xhr({
+                method: 'POST',
+                uri: `${host}/${auth.username}`,
+                headers: auth.authType === 'x-token' ?
+                    {'x-token': auth.authToken} :
+                    {Authorization: `Bearer ${auth.authToken}`},
+                json: {
+                    type: item.type,
+                    mime: data.mimeType(),
+                    name: item.name,
 
-                        body,
-                        thumbnail
-                    } as any
-                }, (error, response) => {
-                    if (error || response.statusCode !== 200) {
-                        return reject(new Error(String(response.statusCode)));
-                    }
-                    return resolve(includeFullUrls(response.body as BackpackItemWithoutUrls, host));
-                });
+                    body,
+                    thumbnail
+                } as any // The type of the json param is wrong
+            }, (error, response) => {
+                if (error || response.statusCode !== 200) {
+                    return reject(new Error(String(response.statusCode)));
+                }
+                return resolve(includeFullUrls(response.body as BackpackItemWithoutUrls, host));
             });
-        });
+        }));
     }
 
-    async delete(id: string): Promise<void> {
+    async delete (id: string): Promise<void> {
         const host = this.host;
         if (!host) {
             return Promise.reject(new Error('Backpack host not set'));
@@ -160,7 +157,7 @@ export class LegacyBackpackStorage implements GUIBackpackStorage {
                 uri: `${host}/${auth.username}/${id}`,
                 headers: auth.authType === 'x-token' ?
                     {'x-token': auth.authToken} :
-                    {Authorization: `Bearer ${auth.authToken}`},
+                    {Authorization: `Bearer ${auth.authToken}`}
             }, (error, response) => {
                 if (error || response.statusCode !== 200) {
                     return reject(new Error(String(response.statusCode)));
@@ -170,7 +167,7 @@ export class LegacyBackpackStorage implements GUIBackpackStorage {
         });
     }
 
-    private getBackpackAssetURL(asset: Asset): string {
+    private getBackpackAssetURL (asset: Asset): string {
         return `${this.host}/${asset.assetId}.${asset.dataFormat}`;
     }
 }

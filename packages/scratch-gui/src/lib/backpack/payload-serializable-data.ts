@@ -19,33 +19,33 @@ export interface BackpackPayload {
 export class PayloadSerializableData implements SerializableData {
     private payload: BackpackPayload;
 
-    constructor(payload: BackpackPayload) {
+    constructor (payload: BackpackPayload) {
         this.payload = payload;
     }
 
-    mimeType(): string {
+    mimeType (): string {
         return this.payload.mime;
     }
 
-    dataAsBase64(): Promise<string> {
+    dataAsBase64 (): Promise<string> {
         return Promise.resolve(this.payload.body);
     }
 
-    thumbnailAsBase64(): Promise<string> {
+    thumbnailAsBase64 (): Promise<string> {
         return Promise.resolve(this.payload.thumbnail);
     }
 
     /**
      * Returns the type of the backpack item
      */
-    getType(): BackpackItemType {
+    getType (): BackpackItemType {
         return this.payload.type;
     }
 
     /**
      * Returns the name of the backpack item
      */
-    getName(): string {
+    getName (): string {
         return this.payload.name;
     }
 }

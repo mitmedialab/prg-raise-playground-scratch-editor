@@ -14,7 +14,7 @@ export class LegacyStorage implements GUIStorage {
 
     readonly scratchStorage = new ScratchStorage();
     readonly backpackStorage = new LegacyBackpackStorage({
-        readAuth(session) {
+        readAuth (session) {
             if (!session) {
                 return Promise.reject(new Error('missing session'));
             }
@@ -23,8 +23,8 @@ export class LegacyStorage implements GUIStorage {
                 username: session.username,
                 authType: 'x-token',
                 authToken: session.token
-            })
-        },
+            });
+        }
     });
 
     constructor () {
