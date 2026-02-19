@@ -464,13 +464,13 @@ class Blocks {
             break;
         case 'var_delete': {
             const target =
-                    editingTarget &&
+                editingTarget &&
                     Object.prototype.hasOwnProperty.call(
                         editingTarget.variables,
                         e.varId
                     ) ?
-                        editingTarget :
-                        stage;
+                    editingTarget :
+                    stage;
             target.deleteVariable(e.varId);
             this.emitProjectChanged();
             break;
@@ -733,18 +733,18 @@ class Blocks {
                 if (block.opcode === 'sensing_of_object_menu') {
                     if (block.fields.OBJECT.value === '_stage_') {
                         this._blocks[block.parent].fields.PROPERTY.value =
-                                'backdrop #';
+                            'backdrop #';
                     } else {
                         this._blocks[block.parent].fields.PROPERTY.value =
-                                'x position';
+                            'x position';
                     }
                     this.runtime.requestBlocksUpdate();
                 }
 
                 const flyoutBlock =
-                        block.shadow && block.parent ?
-                            this._blocks[block.parent] :
-                            block;
+                    block.shadow && block.parent ?
+                        this._blocks[block.parent] :
+                        block;
                 if (flyoutBlock.isMonitored) {
                     this.runtime.requestUpdateMonitor(
                         Map({
@@ -795,18 +795,18 @@ class Blocks {
             let isSpriteLocalVariable = false;
             if (block.opcode === 'data_variable') {
                 isSpriteLocalVariable =
-                        !this.runtime.getTargetForStage().variables[
-                            block.fields.VARIABLE.id
-                        ];
+                    !this.runtime.getTargetForStage().variables[
+                        block.fields.VARIABLE.id
+                    ];
             } else if (block.opcode === 'data_listcontents') {
                 isSpriteLocalVariable =
-                        !this.runtime.getTargetForStage().variables[
-                            block.fields.LIST.id
-                        ];
+                    !this.runtime.getTargetForStage().variables[
+                        block.fields.LIST.id
+                    ];
             }
 
             const isSpriteSpecific =
-                    isSpriteLocalVariable ||
+                isSpriteLocalVariable ||
                     (Object.prototype.hasOwnProperty.call(
                         this.runtime.monitorBlockInfo,
                         block.opcode
@@ -818,7 +818,7 @@ class Blocks {
                 // the current editing one b/c you cannot dynamically create monitors.
                 // Also, do not change the targetId if it has already been assigned
                 block.targetId =
-                        block.targetId || this.runtime.getEditingTarget().id;
+                    block.targetId || this.runtime.getEditingTarget().id;
             } else {
                 block.targetId = null;
             }
