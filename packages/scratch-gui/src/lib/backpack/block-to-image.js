@@ -1,5 +1,5 @@
 import computedStyleToInlineStyle from 'computed-style-to-inline-style';
-import {ScratchBlocks} from 'scratch-blocks';
+import * as ScratchBlocks from 'scratch-blocks';
 
 /**
  * @import {WorkspaceSvg} from 'blockly/core'

@@ -88,7 +88,7 @@ const playgroundBuilder = webBuilder
         }
     })
     .addModuleRule({
-        test: require.resolve('scratch-blocks/dist/main.js'),
+        test: require.resolve('scratch-blocks'),
         loader: 'expose-loader',
         options: {
             exposes: 'Blockly'
