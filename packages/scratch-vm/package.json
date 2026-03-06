@@ -110,7 +110,7 @@
     "tap": "21.6.2",
     "tiny-worker": "2.3.0",
     "typedoc": "0.28.16",
-    "webpack": "5.105.3",
+    "webpack": "5.105.4",
     "webpack-cli": "4.10.0",
     "webpack-dev-server": "5.2.3"
   }
