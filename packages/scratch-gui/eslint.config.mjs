@@ -79,7 +79,7 @@ export default eslintConfigScratch.defineConfig(
             }
         },
         rules: {
-            'max-len': [
+            '@stylistic/max-len': [
                 'warn',
                 // settings copied from eslint-config-scratch.legacy.base
                 {
