@@ -94,7 +94,9 @@ const vmListenerHOC = function (WrappedComponent) {
                 // specific block or comment has focus — i.e. when the workspace
                 // background itself is focused. In that case key presses should
                 // reach the VM for key-sensing just like any other key press.
-                if (isContentNodeFocused()) return;
+                // The workspace is rendered as SVG, so we check for SVGElement
+                // to avoid swallowing keys from HTML inputs (e.g. project title).
+                if (!(e.target instanceof SVGElement) || isContentNodeFocused()) return;
             }
 
             const key = (!e.key || e.key === 'Dead') ? e.keyCode : e.key;

@@ -169,11 +169,21 @@ describe('VMListenerHOC', () => {
             />
         );
 
-        // simulate the keypress not being forwarded to the VM because a Blockly content node has focus
-        // we need to simulate it because there are no real Blockly elements in the simulated DOM
-        jest.spyOn(ScratchBlocks, 'isContentNodeFocused').mockReturnValueOnce(true);
-        eventTriggers.keydown({key: 'A', target: null});
+        // keydown with an HTML target (e.g. project title input) should not be forwarded to VM
+        const inputEl = document.createElement('input');
+        eventTriggers.keydown({key: 'A', target: inputEl});
         expect(vm.postIOData).not.toHaveBeenLastCalledWith('keyboard', {key: 'A', isDown: true});
+
+        // keydown with an SVG target (Blockly workspace) and a focused content node should not be forwarded
+        const svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        jest.spyOn(ScratchBlocks, 'isContentNodeFocused').mockReturnValueOnce(true);
+        eventTriggers.keydown({key: 'A', target: svgEl});
+        expect(vm.postIOData).not.toHaveBeenLastCalledWith('keyboard', {key: 'A', isDown: true});
+
+        // keydown with an SVG target and no focused content node should be forwarded (workspace background focus)
+        jest.spyOn(ScratchBlocks, 'isContentNodeFocused').mockReturnValueOnce(false);
+        eventTriggers.keydown({key: 'A', target: svgEl});
+        expect(vm.postIOData).toHaveBeenLastCalledWith('keyboard', {key: 'A', isDown: true});
 
         // keydown/up with target as the document are sent to the vm via postIOData
         eventTriggers.keydown({key: 'A', target: document});
