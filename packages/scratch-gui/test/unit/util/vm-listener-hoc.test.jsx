@@ -2,6 +2,7 @@ import React from 'react';
 import configureStore from 'redux-mock-store';
 import {render} from '@testing-library/react';
 import VM from '@scratch/scratch-vm';
+import * as ScratchBlocks from 'scratch-blocks';
 
 import vmListenerHOC from '../../../src/lib/vm-listener-hoc.jsx';
 import '@testing-library/jest-dom';
@@ -168,7 +169,9 @@ describe('VMListenerHOC', () => {
             />
         );
 
-        // keyboard events that do not target the document or body are ignored
+        // simulate the keypress not being forwarded to the VM because a Blockly content node has focus
+        // we need to simulate it because there are no real Blockly elements in the simulated DOM
+        jest.spyOn(ScratchBlocks, 'isContentNodeFocused').mockReturnValueOnce(true);
         eventTriggers.keydown({key: 'A', target: null});
         expect(vm.postIOData).not.toHaveBeenLastCalledWith('keyboard', {key: 'A', isDown: true});
 
