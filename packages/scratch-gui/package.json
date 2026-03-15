@@ -199,7 +199,7 @@
     "eslint": "9.39.4",
     "eslint-config-scratch": "14.0.6",
     "eslint-import-resolver-typescript": "4.4.4",
-    "eslint-plugin-import-x": "4.16.1",
+    "eslint-plugin-import-x": "4.16.2",
     "eslint-plugin-react": "7.37.5",
     "file-loader": "6.2.0",
     "gh-pages": "3.2.3",
