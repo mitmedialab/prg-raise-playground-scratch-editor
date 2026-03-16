@@ -6,6 +6,7 @@
 
 # Testing
 scripts/tests
+/test_results
 
 # Output
 /output
