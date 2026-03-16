@@ -62,6 +62,8 @@ jobs:
     permissions:
       actions: read  # to download artifacts from the CI run
       contents: write  # to push the version commit and tag
+      issues: write  # to comment on issues when a fix is released
+      pull-requests: write  # to comment on PRs when a fix is released
     env:
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
@@ -192,6 +194,14 @@ jobs:
           else
             echo "Not pushing to develop because the tag we're operating on is behind"
           fi
+
+      - name: Comment on resolved issues and merged PRs
+        if: ${{ !github.event.release.prerelease }}
+        uses: apexskier/github-release-commenter@e7813a9625eabd79a875b4bc4046cfcae377ab34 # v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          comment-template: |
+            :tada: This is included in release {release_link}.
 
       # See https://stackoverflow.com/a/24849501
       - name: Change connected commit on release
