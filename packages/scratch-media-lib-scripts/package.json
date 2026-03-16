@@ -1,0 +1,38 @@
+{
+  "name": "@scratch/scratch-media-lib-scripts",
+  "version": "13.0.2",
+  "description": "Build scripts for Scratch media library assets",
+  "main": "scripts/build_media_libraries.js",
+  "bin": {
+    "build-media-libraries": "./scripts/build_media_libraries.js"
+  },
+  "files": [
+    "scripts",
+    "schemas"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "node scripts/build_media_libraries.js media/editor",
+    "test": "npm run lint && jest",
+    "lint": "eslint .",
+    "format": "eslint --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/scratchfoundation/scratch-editor.git"
+  },
+  "author": "Scratch Foundation",
+  "license": "AGPL-3.0-only",
+  "homepage": "https://github.com/scratchfoundation/scratch-media-lib-scripts#readme",
+  "dependencies": {
+    "json5": "^2.2.3"
+  },
+  "devDependencies": {
+    "eslint": "9.39.4",
+    "eslint-config-scratch": "14.0.8",
+    "jest": "^30.3.0",
+    "prettier": "3.8.1"
+  }
+}
