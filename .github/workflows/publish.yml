@@ -8,6 +8,9 @@ jobs:
   find-artifacts:
     name: Find CI artifacts
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
     outputs:
       ci-run-id: ${{ steps.find.outputs.run-id }}
       needs-build: ${{ steps.find.outputs.needs-build }}
@@ -23,23 +26,33 @@ jobs:
           SHA=$(gh api "repos/$GITHUB_REPOSITORY/commits/$TARGET" --jq '.sha' 2>/dev/null || echo "$TARGET")
           echo "Resolved target '$TARGET' to SHA: $SHA"
 
-          # Find the most recent successful CI run for this SHA
+          # Find the most recent successful CI run for this SHA that has a build artifact
           RUN_ID=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs" \
             -F "head_sha=$SHA" \
             -F "status=success" \
-            -F "per_page=1" \
-            --jq '.workflow_runs[0].id // empty') || {
+            -F "per_page=10" \
+            --jq '.workflow_runs[].id') || {
             echo "::error::Failed to query CI workflow runs. If ci.yml was renamed, update the reference in the find-artifacts job in publish.yml."
             exit 1
           }
 
-          if [ -z "$RUN_ID" ]; then
-            echo "No successful CI run found for SHA $SHA. A fresh build will be triggered."
+          USABLE_RUN_ID=""
+          for ID in $RUN_ID; do
+            HAS_ARTIFACT=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$ID/artifacts" \
+              --jq '[.artifacts[] | select(.name == "build" and .expired == false)] | length')
+            if [ "$HAS_ARTIFACT" -gt 0 ]; then
+              USABLE_RUN_ID="$ID"
+              break
+            fi
+          done
+
+          if [ -z "$USABLE_RUN_ID" ]; then
+            echo "No successful CI run with a valid build artifact found for SHA $SHA. A fresh build will be triggered."
             echo "run-id=" >> "$GITHUB_OUTPUT"
             echo "needs-build=true" >> "$GITHUB_OUTPUT"
           else
-            echo "Found successful CI run: $RUN_ID"
-            echo "run-id=$RUN_ID" >> "$GITHUB_OUTPUT"
+            echo "Found suitable CI run: $USABLE_RUN_ID"
+            echo "run-id=$USABLE_RUN_ID" >> "$GITHUB_OUTPUT"
             echo "needs-build=false" >> "$GITHUB_OUTPUT"
           fi
 
@@ -153,13 +166,13 @@ jobs:
           git add package* && git commit -m "chore(release): $NEW_VERSION [skip ci]"
 
       - name: Publish scratch-svg-renderer
-        run: npm publish --access=public --tag="$NPM_TAG" --workspace=@scratch/scratch-svg-renderer
+        run: npm publish --access=public --tag="$NPM_TAG" --ignore-scripts --workspace=@scratch/scratch-svg-renderer
 
       - name: Publish scratch-render
-        run: npm publish --access=public --tag="$NPM_TAG" --workspace=@scratch/scratch-render
+        run: npm publish --access=public --tag="$NPM_TAG" --ignore-scripts --workspace=@scratch/scratch-render
 
       - name: Publish scratch-vm
-        run: npm publish --access=public --tag="$NPM_TAG" --workspace=@scratch/scratch-vm
+        run: npm publish --access=public --tag="$NPM_TAG" --ignore-scripts --workspace=@scratch/scratch-vm
 
       - name: Publish scratch-gui
         run: |
@@ -167,17 +180,17 @@ jobs:
 
           jq 'del(.exports["./standalone"])' ./packages/scratch-gui/package.json | npx sponge ./packages/scratch-gui/package.json
 
-          npm publish --access=public --tag="$NPM_TAG" --workspace=@scratch/scratch-gui
+          npm publish --access=public --tag="$NPM_TAG" --ignore-scripts --workspace=@scratch/scratch-gui
 
           mv ./packages/scratch-gui/package-copy.json ./packages/scratch-gui/package.json
 
       - name: Publish scratch-gui-standalone
         run: |
           bash ./scripts/prepare-standalone-gui.sh
-          npm publish --access=public --tag="$NPM_TAG" --workspace=@scratch/scratch-gui-standalone
+          npm publish --access=public --tag="$NPM_TAG" --ignore-scripts --workspace=@scratch/scratch-gui-standalone
 
       - name: Publish task-herder
-        run: npm publish --access=public --tag="$NPM_TAG" --workspace=@scratch/task-herder
+        run: npm publish --access=public --tag="$NPM_TAG" --ignore-scripts --workspace=@scratch/task-herder
 
       - name: Push to develop
         shell: bash

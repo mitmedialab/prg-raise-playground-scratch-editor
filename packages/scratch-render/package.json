@@ -36,7 +36,7 @@
     "docs": "typedoc",
     "lint": "eslint",
     "prepublish-watch": "npm run watch",
-    "prepublish": "npm run build",
+    "prepublishOnly": "echo \"Please publish through CI only.\" && exit 1",
     "start": "webpack-dev-server",
     "tap": "tap test/unit test/integration",
     "test": "npm run lint && npm run tap",

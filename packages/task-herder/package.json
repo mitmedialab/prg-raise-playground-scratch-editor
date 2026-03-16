@@ -36,6 +36,7 @@
     "dev": "vite",
     "format": "prettier --write . && eslint --fix",
     "lint": "eslint && prettier --check .",
+    "prepublishOnly": "echo \"Please publish through CI only.\" && exit 1",
     "preview": "vite preview",
     "test": "npm run lint && vitest run --coverage"
   },
