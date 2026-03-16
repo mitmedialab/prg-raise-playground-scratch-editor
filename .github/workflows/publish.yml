@@ -5,12 +5,63 @@ on:
     types: [published]
 
 jobs:
-  ci:
-    uses: ./.github/workflows/ci.yml
-  cd:
-    needs:
-      - ci
+  find-artifacts:
+    name: Find CI artifacts
     runs-on: ubuntu-latest
+    outputs:
+      ci-run-id: ${{ steps.find.outputs.run-id }}
+      needs-build: ${{ steps.find.outputs.needs-build }}
+    steps:
+      - name: Find successful CI run for release target
+        id: find
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET: ${{ github.event.release.target_commitish }}
+        shell: bash
+        run: |
+          # Resolve branch name or tag to a commit SHA
+          SHA=$(gh api "repos/$GITHUB_REPOSITORY/commits/$TARGET" --jq '.sha' 2>/dev/null || echo "$TARGET")
+          echo "Resolved target '$TARGET' to SHA: $SHA"
+
+          # Find the most recent successful CI run for this SHA
+          RUN_ID=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs" \
+            -F "head_sha=$SHA" \
+            -F "status=success" \
+            -F "per_page=1" \
+            --jq '.workflow_runs[0].id // empty') || {
+            echo "::error::Failed to query CI workflow runs. If ci.yml was renamed, update the reference in the find-artifacts job in publish.yml."
+            exit 1
+          }
+
+          if [ -z "$RUN_ID" ]; then
+            echo "No successful CI run found for SHA $SHA. A fresh build will be triggered."
+            echo "run-id=" >> "$GITHUB_OUTPUT"
+            echo "needs-build=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Found successful CI run: $RUN_ID"
+            echo "run-id=$RUN_ID" >> "$GITHUB_OUTPUT"
+            echo "needs-build=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  build:
+    name: Build (no prior CI run found)
+    needs: find-artifacts
+    if: ${{ needs.find-artifacts.outputs.needs-build == 'true' }}
+    uses: ./.github/workflows/ci.yml
+    with:
+      force-full-build: true
+
+  cd:
+    name: Publish to npm
+    needs:
+      - find-artifacts
+      - build
+    # Run if find-artifacts succeeded AND (build succeeded OR build was skipped because artifacts already exist)
+    if: ${{ !cancelled() && needs.find-artifacts.result == 'success' && (needs.build.result == 'success' || needs.build.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read  # to download artifacts from the CI run
+      contents: write  # to push the version commit and tag
     env:
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
@@ -73,6 +124,22 @@ jobs:
 
       - uses: ./.github/actions/install-dependencies
 
+      - name: Download build artifacts (from previous CI run)
+        if: ${{ needs.build.result == 'skipped' }}
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: build
+          path: packages
+          run-id: ${{ needs.find-artifacts.outputs.ci-run-id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download build artifacts (from fallback build in this run)
+        if: ${{ needs.build.result == 'success' }}
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: build
+          path: packages
+
       - name: Update the version in the package files
         shell: bash
         env:
@@ -83,24 +150,14 @@ jobs:
           npm version "$NEW_VERSION" --no-git-tag-version
           git add package* && git commit -m "chore(release): $NEW_VERSION [skip ci]"
 
-      # Install dependencies after the version update so that
-      # the build outputs refer to the newest version of inner packages
-      - uses: ./.github/actions/install-dependencies
-
       - name: Publish scratch-svg-renderer
-        run: |
-          npm run build --workspace @scratch/scratch-svg-renderer
-          npm publish --access=public --tag="$NPM_TAG" --workspace=@scratch/scratch-svg-renderer
+        run: npm publish --access=public --tag="$NPM_TAG" --workspace=@scratch/scratch-svg-renderer
 
       - name: Publish scratch-render
-        run: |
-          npm run build --workspace @scratch/scratch-render
-          npm publish --access=public --tag="$NPM_TAG" --workspace=@scratch/scratch-render
+        run: npm publish --access=public --tag="$NPM_TAG" --workspace=@scratch/scratch-render
 
       - name: Publish scratch-vm
-        run: |
-          npm run build --workspace @scratch/scratch-vm
-          npm publish --access=public --tag="$NPM_TAG" --workspace=@scratch/scratch-vm
+        run: npm publish --access=public --tag="$NPM_TAG" --workspace=@scratch/scratch-vm
 
       - name: Publish scratch-gui
         run: |
@@ -108,7 +165,6 @@ jobs:
 
           jq 'del(.exports["./standalone"])' ./packages/scratch-gui/package.json | npx sponge ./packages/scratch-gui/package.json
 
-          npm run build:dist --workspace @scratch/scratch-gui
           npm publish --access=public --tag="$NPM_TAG" --workspace=@scratch/scratch-gui
 
           mv ./packages/scratch-gui/package-copy.json ./packages/scratch-gui/package.json
@@ -116,14 +172,10 @@ jobs:
       - name: Publish scratch-gui-standalone
         run: |
           bash ./scripts/prepare-standalone-gui.sh
-
-          npm --workspace=@scratch/scratch-gui-standalone run clean && npm --workspace=@scratch/scratch-gui-standalone run build:dist-standalone
           npm publish --access=public --tag="$NPM_TAG" --workspace=@scratch/scratch-gui-standalone
 
       - name: Publish task-herder
-        run: |
-          npm run build --workspace @scratch/task-herder
-          npm publish --access=public --tag="$NPM_TAG" --workspace=@scratch/task-herder
+        run: npm publish --access=public --tag="$NPM_TAG" --workspace=@scratch/task-herder
 
       - name: Push to develop
         shell: bash
