@@ -5,6 +5,10 @@ on:
     - cron: 0 0 * * 6 # midnight on Saturdays
   workflow_dispatch:
 
+concurrency:
+  group: ghpages-cleanup
+  cancel-in-progress: false # queue rather than cancel: avoid half-cleaned states
+
 jobs:
   cleanup:
     permissions:

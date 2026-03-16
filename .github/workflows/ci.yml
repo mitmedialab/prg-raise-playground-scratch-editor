@@ -29,12 +29,13 @@ jobs:
         env:
           # `env:` values are printed to the log even without using them in `run:`
           GH_CONTEXT: ${{ toJson(github) }}
+          SCRATCH_ENV: ${{ vars.SCRATCH_ENV || '<none>' }}
         run: |
           cat <<EOF
           Working directory: $(pwd)
           Node version: $(node --version)
           NPM version: $(npm --version)
-          Scratch environment: ${{ vars.SCRATCH_ENV || '<none>' }}
+          Scratch environment: $SCRATCH_ENV
           EOF
 
       - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3
@@ -169,6 +170,10 @@ jobs:
               echo "Tests were unnecessary for these changes, so they were skipped."
               echo "If this is unexpected, check the path filters."
               exit 0
+              ;;
+            cancelled)
+              echo "Tests were cancelled."
+              exit 1
               ;;
             *)
               echo "Tests failed."
