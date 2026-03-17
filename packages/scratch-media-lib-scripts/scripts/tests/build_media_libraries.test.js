@@ -901,7 +901,7 @@ describe('buildLibraries', () => {
     const spriteDir = path.join(tempInputDir, 'sprites', spriteName);
     fs.mkdirSync(spriteDir, { recursive: true });
     const jsonContent = {
-      '$schema': '../../../schemas/media-collection-schema.json',
+      '$schema': '../../schemas/media-collection-schema.json',
       sprites: [{
         name: spriteName,
         costumes: [costumeName],
