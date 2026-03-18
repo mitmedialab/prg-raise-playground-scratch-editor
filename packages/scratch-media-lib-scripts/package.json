@@ -2,7 +2,7 @@
   "name": "@scratch/scratch-media-lib-scripts",
   "version": "13.0.2",
   "description": "Build scripts for Scratch media library assets",
-  "main": "scripts/build_media_libraries.js",
+  "main": "index.js",
   "bin": {
     "build-media-libraries": "./scripts/build_media_libraries.js"
   },
@@ -10,12 +10,10 @@
     "scripts",
     "schemas"
   ],
-  "publishConfig": {
-    "access": "public"
-  },
   "scripts": {
     "build": "node scripts/build_media_libraries.js media/editor",
     "test": "npm run lint && jest",
+    "test:unit": "jest",
     "lint": "eslint .",
     "format": "eslint --fix"
   },

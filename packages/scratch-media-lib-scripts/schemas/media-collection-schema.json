@@ -82,7 +82,7 @@
         "file": {
           "description": "The path to the image file.",
           "type": "string",
-          "format": "data-url"
+          "format": "uri-reference"
         },
         "bitmapResolution": {
           "description": "The resolution multiplier for the bitmap image. New bitmaps should generally use 2.",
@@ -154,7 +154,7 @@
         "file": {
           "description": "The path to the audio file.",
           "type": "string",
-          "format": "data-url"
+          "format": "uri-reference"
         },
         "rate": {
           "description": "The sampling rate of the audio file.",
