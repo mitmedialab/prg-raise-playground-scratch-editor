@@ -240,6 +240,20 @@ class Blocks extends React.Component {
     }
     componentWillUnmount () {
         this.detachVM();
+        // Hide any open field editor and move Blockly focus to the workspace
+        // root before disposing. Without this, BlockSvg.dispose() detects the
+        // focused element is inside a block and schedules a stale
+        // setTimeout(() => focusTree(workspace)), which fires after the
+        // workspace is unregistered and throws
+        // "Attempted to focus unregistered tree" (scratch-blocks#3460).
+        //
+        // focusNode(workspace) — not focusTree(workspace) — is used here
+        // because focusTree would restore focus to whatever was previously
+        // focused in this workspace (likely the same block about to be
+        // disposed). focusNode pins focus to the workspace root directly,
+        // ensuring no block is focused when dispose() runs.
+        this.ScratchBlocks.WidgetDiv.hide();
+        this.ScratchBlocks.getFocusManager().focusNode(this.workspace);
         this.workspace.dispose();
         clearTimeout(this.toolboxUpdateTimeout);
 
