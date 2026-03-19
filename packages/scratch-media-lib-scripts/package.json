@@ -25,13 +25,13 @@
   "license": "AGPL-3.0-only",
   "homepage": "https://github.com/scratchfoundation/scratch-media-lib-scripts#readme",
   "dependencies": {
-    "json5": "^2.2.3"
+    "json5": "2.2.3"
   },
   "devDependencies": {
     "eslint": "9.39.4",
     "eslint-config-scratch": "14.0.10",
-    "jest": "^30.3.0",
-    "jest-junit": "^16.0.0",
+    "jest": "30.3.0",
+    "jest-junit": "16.0.0",
     "prettier": "3.8.1"
   },
   "jest": {
