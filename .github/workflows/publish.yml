@@ -5,81 +5,11 @@ on:
     types: [published]
 
 jobs:
-  find-artifacts:
-    name: Find CI artifacts
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-    outputs:
-      ci-run-id: ${{ steps.find.outputs.run-id }}
-      needs-build: ${{ steps.find.outputs.needs-build }}
-    steps:
-      - name: Find successful CI run for release target
-        id: find
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TARGET: ${{ github.event.release.target_commitish }}
-        shell: bash
-        run: |
-          # Resolve branch name or tag to a commit SHA
-          SHA=$(gh api "repos/$GITHUB_REPOSITORY/commits/$TARGET" --jq '.sha' 2>/dev/null || echo "$TARGET")
-          echo "Resolved target '$TARGET' to SHA: $SHA"
-
-          # Find the most recent successful CI run for this SHA that has a build artifact
-          RUN_ID=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs" \
-            --method GET \
-            -F "head_sha=$SHA" \
-            -F "status=success" \
-            -F "per_page=10" \
-            --jq '.workflow_runs[].id') || {
-            echo "::error::Failed to query CI workflow runs. If ci.yml was renamed, update the reference in the find-artifacts job in publish.yml."
-            exit 1
-          }
-
-          USABLE_RUN_ID=""
-          for ID in $RUN_ID; do
-            HAS_ARTIFACT=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$ID/artifacts" \
-              --jq '[.artifacts[] | select(.name == "build" and .expired == false)] | length')
-            if [ "$HAS_ARTIFACT" -gt 0 ]; then
-              USABLE_RUN_ID="$ID"
-              break
-            fi
-          done
-
-          if [ -z "$USABLE_RUN_ID" ]; then
-            echo "No successful CI run with a valid build artifact found for SHA $SHA. A fresh build will be triggered."
-            echo "run-id=" >> "$GITHUB_OUTPUT"
-            echo "needs-build=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "Found suitable CI run: $USABLE_RUN_ID"
-            echo "run-id=$USABLE_RUN_ID" >> "$GITHUB_OUTPUT"
-            echo "needs-build=false" >> "$GITHUB_OUTPUT"
-          fi
-
   build:
-    name: Build (no prior CI run found)
-    needs: find-artifacts
-    if: ${{ needs.find-artifacts.outputs.needs-build == 'true' }}
-    uses: ./.github/workflows/ci.yml
-    with:
-      force-full-build: true
-
-  cd:
-    name: Publish to npm
-    needs:
-      - find-artifacts
-      - build
-    # Run if find-artifacts succeeded AND (build succeeded OR build was skipped because artifacts already exist)
-    if: ${{ !cancelled() && needs.find-artifacts.result == 'success' && (needs.build.result == 'success' || needs.build.result == 'skipped') }}
+    name: Build
     runs-on: ubuntu-latest
-    permissions:
-      actions: read  # to download artifacts from the CI run
-      contents: write  # to push the version commit and tag
-      issues: write  # to comment on issues when a fix is released
-      pull-requests: write  # to comment on PRs when a fix is released
-    env:
-      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    outputs:
+      packages: ${{ steps.list-packages.outputs.packages }}
     steps:
       - name: Debug info
         # https://docs.github.com/en/actions/reference/security/secure-use#use-an-intermediate-environment-variable
@@ -93,6 +23,69 @@ jobs:
           Release target commit-ish: $RELEASE_TARGET_COMMITISH
           EOF
 
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+
+      - uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6
+        with:
+          cache: 'npm'
+          node-version-file: '.nvmrc'
+
+      - uses: ./.github/actions/install-dependencies
+
+      - name: Bump version
+        shell: bash
+        env:
+          GIT_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          NEW_VERSION="${GIT_TAG/v/}"
+          npm version "$NEW_VERSION" --no-git-tag-version
+
+      - name: Build packages
+        run: npm run build
+
+      - name: List packages
+        id: list-packages
+        run: |
+          PACKAGES=$(ls -1d packages/*/ | xargs -n1 basename | jq -Rcn '[inputs]')
+          echo "packages=$PACKAGES" >> "$GITHUB_OUTPUT"
+
+      - name: Store build artifacts
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: build
+          retention-days: 90
+          path: |
+            packages/**/build
+            packages/**/dist
+            packages/**/playground
+
+  test:
+    needs: build
+    uses: ./.github/workflows/test-packages.yml
+    with:
+      packages: ${{ needs.build.outputs.packages }}
+
+  preview:
+    needs: build
+    uses: ./.github/workflows/deploy-playground-preview.yml
+    with:
+      destination_dir: ${{ github.event.release.target_commitish }}
+      full_commit_message: "Build for release ${{ github.event.release.tag_name }}"
+
+  cd:
+    name: Publish to npm
+    needs:
+      - build
+      - test
+    if: ${{ !cancelled() && needs.build.result == 'success' && needs.test.result == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # to push the version commit and tag
+      issues: write  # to comment on issues when a fix is released
+      pull-requests: write  # to comment on PRs when a fix is released
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    steps:
       - name: Determine NPM tag
         shell: bash
         env:
@@ -140,31 +133,20 @@ jobs:
 
       - uses: ./.github/actions/install-dependencies
 
-      - name: Download build artifacts (from previous CI run)
-        if: ${{ needs.build.result == 'skipped' }}
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
-        with:
-          name: build
-          path: packages
-          run-id: ${{ needs.find-artifacts.outputs.ci-run-id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Download build artifacts (from fallback build in this run)
-        if: ${{ needs.build.result == 'success' }}
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
-        with:
-          name: build
-          path: packages
-
-      - name: Update the version in the package files
+      - name: Bump version and commit
         shell: bash
         env:
           GIT_TAG: ${{ github.event.release.tag_name }}
         run: |
           NEW_VERSION="${GIT_TAG/v/}"
-
           npm version "$NEW_VERSION" --no-git-tag-version
           git add package* && git commit -m "chore(release): $NEW_VERSION [skip ci]"
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: build
+          path: packages
 
       - name: Publish scratch-svg-renderer
         run: npm publish --access=public --tag="$NPM_TAG" --ignore-scripts --workspace=@scratch/scratch-svg-renderer
@@ -207,10 +189,11 @@ jobs:
         run: |
           git fetch origin develop
 
-          LAST_COMMIT_ID="$(git rev-parse "$TAG_NAME")"
+          # HEAD is the version bump commit; HEAD^ is the release target commit
+          RELEASE_TARGET_COMMIT="$(git rev-parse HEAD^)"
           DEVELOP_COMMIT_ID="$(git rev-parse origin/develop)"
 
-          if [ "$LAST_COMMIT_ID" = "$DEVELOP_COMMIT_ID" ]; then
+          if [ "$RELEASE_TARGET_COMMIT" = "$DEVELOP_COMMIT_ID" ]; then
             git push origin HEAD:develop
           else
             echo "Not pushing to develop because the tag we're operating on is behind"
