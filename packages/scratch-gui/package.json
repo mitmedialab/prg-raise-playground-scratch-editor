@@ -57,6 +57,7 @@
     "i18n:push": "tx-push-src scratch-editor interface translations/en.json",
     "i18n:src": "rimraf ./translations/messages/src && babel src > tmp.js && rimraf tmp.js && build-i18n-src ./translations/messages/src ./translations/",
     "prepare": "node scripts/prepare.mjs",
+    "prepublishOnly": "echo \"Please publish through CI only.\" && exit 1",
     "prune": "./prune-gh-pages.sh",
     "start": "webpack serve",
     "test": "npm run test:lint && npm run test:unit && npm run test:integration",
