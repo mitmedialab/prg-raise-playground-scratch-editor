@@ -28,6 +28,7 @@ jobs:
 
           # Find the most recent successful CI run for this SHA that has a build artifact
           RUN_ID=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs" \
+            --method GET \
             -F "head_sha=$SHA" \
             -F "status=success" \
             -F "per_page=10" \
