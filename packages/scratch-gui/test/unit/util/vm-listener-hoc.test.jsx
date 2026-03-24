@@ -2,7 +2,6 @@ import React from 'react';
 import configureStore from 'redux-mock-store';
 import {render} from '@testing-library/react';
 import VM from '@scratch/scratch-vm';
-import * as ScratchBlocks from 'scratch-blocks';
 
 import vmListenerHOC from '../../../src/lib/vm-listener-hoc.jsx';
 import '@testing-library/jest-dom';
@@ -174,14 +173,9 @@ describe('VMListenerHOC', () => {
         eventTriggers.keydown({key: 'A', target: inputEl});
         expect(vm.postIOData).not.toHaveBeenLastCalledWith('keyboard', {key: 'A', isDown: true});
 
-        // keydown with an SVG target (Blockly workspace) and a focused content node should not be forwarded
+        // keydown with an SVG target (Blockly workspace) should always be forwarded to VM
+        // even when a block has Blockly focus, so game controls work from the Code tab
         const svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        jest.spyOn(ScratchBlocks, 'isContentNodeFocused').mockReturnValueOnce(true);
-        eventTriggers.keydown({key: 'A', target: svgEl});
-        expect(vm.postIOData).not.toHaveBeenLastCalledWith('keyboard', {key: 'A', isDown: true});
-
-        // keydown with an SVG target and no focused content node should be forwarded (workspace background focus)
-        jest.spyOn(ScratchBlocks, 'isContentNodeFocused').mockReturnValueOnce(false);
         eventTriggers.keydown({key: 'A', target: svgEl});
         expect(vm.postIOData).toHaveBeenLastCalledWith('keyboard', {key: 'A', isDown: true});
 

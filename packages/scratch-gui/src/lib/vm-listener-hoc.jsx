@@ -4,7 +4,6 @@ import React from 'react';
 import VM from '@scratch/scratch-vm';
 
 import {connect} from 'react-redux';
-import {isContentNodeFocused} from 'scratch-blocks';
 
 import {updateTargets} from '../reducers/targets';
 import {updateBlockDrag} from '../reducers/block-drag';
@@ -88,15 +87,13 @@ const vmListenerHOC = function (WrappedComponent) {
             }
         }
         handleKeyDown (e) {
-            // Don't capture keys intended for Blockly inputs.
+            // Don't capture keys intended for HTML inputs (e.g. project title).
+            // The Blockly workspace is rendered as SVG, so SVG-targeted events
+            // should always reach the VM for key-sensing — even when a block has
+            // Blockly focus — so that game controls are never silently dropped
+            // while the user is on the Code tab.
             if (e.target !== document && e.target !== document.body) {
-                // Allow events from inside the Blockly workspace when no
-                // specific block or comment has focus — i.e. when the workspace
-                // background itself is focused. In that case key presses should
-                // reach the VM for key-sensing just like any other key press.
-                // The workspace is rendered as SVG, so we check for SVGElement
-                // to avoid swallowing keys from HTML inputs (e.g. project title).
-                if (!(e.target instanceof SVGElement) || isContentNodeFocused()) return;
+                if (!(e.target instanceof SVGElement)) return;
             }
 
             const key = (!e.key || e.key === 'Dead') ? e.keyCode : e.key;
