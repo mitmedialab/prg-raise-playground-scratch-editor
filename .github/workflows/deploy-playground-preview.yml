@@ -1,4 +1,4 @@
-name: Deploy playground preview
+name: Deploy Playground Preview
 
 on:
   workflow_call:
@@ -15,7 +15,7 @@ on:
 jobs:
   preview:
     runs-on: ubuntu-latest
-    name: Publish preview playgrounds to GitHub Pages
+    name: Publish Preview Playgrounds to GitHub Pages
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
         with:
@@ -25,7 +25,7 @@ jobs:
           persist-credentials: false
           lfs: false
           submodules: false
-      - name: Sanitize destination directory name
+      - name: Sanitize Destination Directory Name
         id: dir
         env:
           DESTINATION_DIR: ${{ inputs.destination_dir }}
@@ -35,7 +35,7 @@ jobs:
         with:
           name: build
           path: packages
-      - name: Prepare playgrounds for GitHub Pages
+      - name: Prepare Playgrounds for GitHub Pages
         working-directory: ./packages
         run: |
           mkdir -p ../pages/
@@ -51,7 +51,7 @@ jobs:
           ln -s "../packages/scratch-gui/build" "../pages/scratch-gui"
 
           ls -l ../pages/
-      - name: Deploy playgrounds to GitHub Pages
+      - name: Deploy Playgrounds to GitHub Pages
         uses: ./.github/actions/deploy-pages-with-retry
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

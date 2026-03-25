@@ -34,7 +34,7 @@ jobs:
         with:
           cache: 'npm'
           node-version-file: '.nvmrc'
-      - name: Debug info
+      - name: Debug Info
         # https://docs.github.com/en/actions/reference/security/secure-use#use-an-intermediate-environment-variable
         env:
           # `env:` values are printed to the log even without using them in `run:`
@@ -54,7 +54,7 @@ jobs:
         with:
           filters: ./.github/path-filters.yml
 
-      - name: Resolve changed packages
+      - name: Resolve Changed Packages
         id: filter
         run: |
           if [ "${{ inputs.force-full-build }}" = "true" ]; then
@@ -71,11 +71,11 @@ jobs:
         uses: ./.github/actions/install-dependencies
 
       # TODO: Packages currently depend on each other's compiled dist at build time. Fix that and matrix the builds.
-      - name: Build packages
+      - name: Build Packages
         if: ${{ steps.filter.outputs.any-workspace == 'true' }}
         run: npm run build
 
-      - name: Store build artifacts
+      - name: Store Build Artifacts
         if: ${{ steps.filter.outputs.any-workspace == 'true' }}
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
         with:
@@ -87,6 +87,7 @@ jobs:
             packages/**/playground
 
   test:
+    name: Test
     needs: build
     if: ${{ needs.build.outputs.any-workspace == 'true' && needs.build.outputs.packages != '[]' }}
     uses: ./.github/workflows/test-packages.yml
@@ -94,6 +95,7 @@ jobs:
       packages: ${{ needs.build.outputs.packages }}
 
   preview:
+    name: Preview
     needs: build
     # We don't want to give forks free reign to publish to our GitHub Pages, so run this job only if both:
     # - any workspace changed (otherwise there's no work to do)

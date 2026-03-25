@@ -11,7 +11,7 @@ jobs:
     outputs:
       packages: ${{ steps.list-packages.outputs.packages }}
     steps:
-      - name: Debug info
+      - name: Debug Info
         # https://docs.github.com/en/actions/reference/security/secure-use#use-an-intermediate-environment-variable
         env:
           # `env:` values are printed to the log even without using them in `run:`
@@ -32,7 +32,7 @@ jobs:
 
       - uses: ./.github/actions/install-dependencies
 
-      - name: Bump version
+      - name: Bump Version
         shell: bash
         env:
           GIT_TAG: ${{ github.event.release.tag_name }}
@@ -40,16 +40,16 @@ jobs:
           NEW_VERSION="${GIT_TAG/v/}"
           npm version "$NEW_VERSION" --no-git-tag-version
 
-      - name: Build packages
+      - name: Build Packages
         run: npm run build
 
-      - name: List packages
+      - name: List Packages
         id: list-packages
         run: |
           PACKAGES=$(ls -1d packages/*/ | xargs -n1 basename | jq -Rcn '[inputs]')
           echo "packages=$PACKAGES" >> "$GITHUB_OUTPUT"
 
-      - name: Store build artifacts
+      - name: Store Build Artifacts
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
         with:
           name: build
@@ -86,7 +86,7 @@ jobs:
     env:
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
-      - name: Determine NPM tag
+      - name: Determine NPM Tag
         shell: bash
         env:
           TARGET_COMMITISH: ${{ github.event.release.target_commitish }}
@@ -108,14 +108,14 @@ jobs:
           echo "Determined NPM tag: [$npm_tag]"
           echo "NPM_TAG=${npm_tag}" >> "$GITHUB_ENV"
 
-      - name: Check NPM tag
+      - name: Check NPM Tag
         run: |
           if [ -z "$NPM_TAG" ]; then
             echo "Refusing to publish with empty NPM tag."
             exit 1
           fi
 
-      - name: Config GitHub user
+      - name: Configure GitHub User
         shell: bash
         run: |
           git config --global user.name 'GitHub Actions'
@@ -133,7 +133,7 @@ jobs:
 
       - uses: ./.github/actions/install-dependencies
 
-      - name: Bump version and commit
+      - name: Bump Version and Commit
         shell: bash
         env:
           GIT_TAG: ${{ github.event.release.tag_name }}
@@ -142,7 +142,7 @@ jobs:
           npm version "$NEW_VERSION" --no-git-tag-version
           git add package* && git commit -m "chore(release): $NEW_VERSION [skip ci]"
 
-      - name: Download build artifacts
+      - name: Download Build Artifacts
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
         with:
           name: build
@@ -182,7 +182,7 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
 
-      - name: Push to develop
+      - name: Push to Develop
         shell: bash
         env:
           TAG_NAME: ${{ github.event.release.tag_name }}
@@ -199,7 +199,7 @@ jobs:
             echo "Not pushing to develop because the tag we're operating on is behind"
           fi
 
-      - name: Comment on resolved issues and merged PRs
+      - name: Comment on Resolved Issues and Merged PRs
         if: ${{ !github.event.release.prerelease }}
         uses: apexskier/github-release-commenter@e7813a9625eabd79a875b4bc4046cfcae377ab34 # v1
         with:
@@ -208,7 +208,7 @@ jobs:
             :tada: This is included in release {release_link}.
 
       # See https://stackoverflow.com/a/24849501
-      - name: Change connected commit on release
+      - name: Change Connected Commit on Release
         shell: bash
         env:
           TAG_NAME: ${{ github.event.release.tag_name }}
