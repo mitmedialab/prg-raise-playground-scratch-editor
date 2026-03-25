@@ -32,12 +32,6 @@ jobs:
 
       - uses: ./.github/actions/install-dependencies
 
-      - name: Configure GitHub User
-        shell: bash
-        run: |
-          git config --global user.name 'GitHub Actions'
-          git config --global user.email 'github-actions@localhost'
-
       - name: Bump Version
         shell: bash
         env:
@@ -64,6 +58,9 @@ jobs:
             packages/**/build
             packages/**/dist
             packages/**/playground
+            package.json
+            package-lock.json
+            packages/*/package.json
 
   test:
     needs: build
@@ -139,20 +136,20 @@ jobs:
 
       - uses: ./.github/actions/install-dependencies
 
-      - name: Bump Version and Commit
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: build
+          path: .
+
+      - name: Commit Version Bump
         shell: bash
         env:
           GIT_TAG: ${{ github.event.release.tag_name }}
         run: |
           NEW_VERSION="${GIT_TAG/v/}"
-          npm version "$NEW_VERSION" --no-git-tag-version
-          git add package* && git commit -m "chore(release): $NEW_VERSION [skip ci]"
-
-      - name: Download Build Artifacts
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
-        with:
-          name: build
-          path: packages
+          git add package.json package-lock.json packages/*/package.json
+          git commit -m "chore(release): $NEW_VERSION [skip ci]"
 
       - name: Publish scratch-svg-renderer
         run: npm publish --access=public --tag="$NPM_TAG" --ignore-scripts --workspace=@scratch/scratch-svg-renderer
