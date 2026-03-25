@@ -32,6 +32,12 @@ jobs:
 
       - uses: ./.github/actions/install-dependencies
 
+      - name: Configure GitHub User
+        shell: bash
+        run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'github-actions@localhost'
+
       - name: Bump Version
         shell: bash
         env:

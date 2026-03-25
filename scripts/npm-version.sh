@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 # `npm version 1.2.3` does the following:
 # 1. Update `/package.json` and `/package-lock.json` with the new version
 # 2. `git add package.json package-lock.json`
