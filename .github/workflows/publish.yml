@@ -58,6 +58,13 @@ jobs:
             packages/**/build
             packages/**/dist
             packages/**/playground
+
+      - name: Store Package Manifests
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: package-manifests
+          retention-days: 90
+          path: |
             package.json
             package-lock.json
             packages/*/package.json
@@ -136,10 +143,10 @@ jobs:
 
       - uses: ./.github/actions/install-dependencies
 
-      - name: Download Build Artifacts
+      - name: Download Package Manifests
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
         with:
-          name: build
+          name: package-manifests
           path: .
 
       - name: Commit Version Bump
@@ -150,6 +157,12 @@ jobs:
           NEW_VERSION="${GIT_TAG/v/}"
           git add package.json package-lock.json packages/*/package.json
           git commit -m "chore(release): $NEW_VERSION [skip ci]"
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: build
+          path: packages
 
       - name: Publish scratch-svg-renderer
         run: npm publish --access=public --tag="$NPM_TAG" --ignore-scripts --workspace=@scratch/scratch-svg-renderer
