@@ -32,6 +32,11 @@ const Video = require('../io/video');
 const StringUtil = require('../util/string-util');
 const uid = require('../util/uid');
 
+/** PRG ADDITION BEGIN */
+const dispatch = require('../dispatch/central-dispatch');
+const { loadCostume } = require('../import/load-costume');
+/** PRG ADDITION END */
+
 const defaultBlockPackages = {
     scratch3_control: require('../blocks/scratch3_control'),
     scratch3_event: require('../blocks/scratch3_event'),
@@ -1242,7 +1247,7 @@ class Runtime extends EventEmitter {
      */
     _convertButtonForScratchBlocks (buttonInfo) {
         // for now we only support these pre-defined callbacks handled in scratch-blocks
-        const supportedCallbackKeys = ['MAKE_A_LIST', 'MAKE_A_PROCEDURE', 'MAKE_A_VARIABLE'];
+        const supportedCallbackKeys = ['MAKE_A_LIST', 'MAKE_A_PROCEDURE', 'MAKE_A_VARIABLE', /** PRG ADDITION BEGING */ 'EDIT_TEXT_MODEL', 'EDIT_TEXT_CLASSIFIER' /** PRG ADDITION END */];
         if (supportedCallbackKeys.indexOf(buttonInfo.func) < 0) {
             log.error(`Custom button callbacks not supported yet: ${buttonInfo.func}`);
         }
@@ -2673,6 +2678,63 @@ class Runtime extends EventEmitter {
     updateCurrentMSecs () {
         this.currentMSecs = Date.now();
     }
+
+
+    /* PRG ADDITIONS BEGIN */
+
+    /**
+     * Get a refernce to the extension manager
+     * @returns {import("../extension-support/extension-manager")}
+     */
+    getExtensionManager() {
+        // Bad form to access this method since it's naming (i.e. leading underscore) suggests it should be private
+        return dispatch._getServiceProvider("extensions")?.provider;
+    }
+
+    /**
+     * Loads a costume asset in
+     */
+    addCostume(costume) {
+        return loadCostume(costume.md5, costume, this)
+    }
+
+    /**
+     * Event name for trigger the worskpace to update with a specified collection of new 'programatically added' blocks
+     * @const {string}
+     */
+    static get ADD_BLOCKS_TO_WORKSPACE() {
+        return 'ADD_BLOCKS_TO_WORKSPACE';
+    }
+
+    /**
+     * Try to retrieve the audio engine attached to this runtime
+     * @returns {Promise<import("scratch-audio/src/AudioEngine")>}
+     */
+    awaitAudioEngine() {
+        const maxAttempts = 5;
+        const attemptIntervalMs = 500;
+        const self = this;
+        return new Promise((resolve, reject) => {
+            let attempts = 0;
+            const interval = setInterval(() => {
+                const { audioEngine } = self;
+                if (audioEngine) {
+                    clearInterval(interval);
+                    resolve(audioEngine);
+                }
+                else if (++attempts > maxAttempts) {
+                    reject();
+                }
+            }, attemptIntervalMs); // (*)
+        })
+            .catch(new Error('No Audio Context Detected'));
+    }
+
+    addBlocksToWorkspace(xmlToAdd) {
+        this.emit(Runtime.ADD_BLOCKS_TO_WORKSPACE, xmlToAdd);
+    }
+
+    /** PRG ADDITIONS END */
 }
 
 /**
