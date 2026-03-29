@@ -1,3 +1,5 @@
+import { overridesForCustomArgumentSupport } from './prg/customBlockOverrides';
+
 /**
  * Connect scratch blocks with the vm
  * @param {VirtualMachine} vm - The scratch vm
@@ -355,5 +357,6 @@ export default function (vm, useCatBlocks) {
         return true;
     };
 
+    overridesForCustomArgumentSupport(ScratchBlocks, vm);
     return ScratchBlocks;
 }
