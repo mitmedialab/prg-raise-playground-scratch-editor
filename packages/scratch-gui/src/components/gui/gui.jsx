@@ -40,6 +40,7 @@ import addExtensionIcon from './icon--extensions.svg';
 import codeIcon from './icon--code.svg';
 import costumesIcon from './icon--costumes.svg';
 import soundsIcon from './icon--sounds.svg';
+import ProgrammaticModal from '../programmatic-modal/programmatic-modal.jsx';
 
 const messages = defineMessages({
     addExtension: {
@@ -123,6 +124,9 @@ const GUIComponent = props => {
         telemetryModalVisible,
         theme,
         tipsLibraryVisible,
+        textModelModalVisible,
+        programmaticModalDetails,
+        classifierModelModalVisible,
         vm,
         ...componentProps
     } = omit(props, 'dispatch');
@@ -187,6 +191,9 @@ const GUIComponent = props => {
                 )}
                 {tipsLibraryVisible ? (
                     <TipsLibrary />
+                ) : null}
+                {programmaticModalDetails ? (
+                    <ProgrammaticModal vm={vm} {...programmaticModalDetails} />
                 ) : null}
                 {cardsVisible ? (
                     <Cards />
@@ -436,6 +443,9 @@ GUIComponent.propTypes = {
     telemetryModalVisible: PropTypes.bool,
     theme: PropTypes.string,
     tipsLibraryVisible: PropTypes.bool,
+    textModelModalVisible: PropTypes.bool,
+    programmaticModalVisible: PropTypes.bool,
+    classifierModelModalVisible: PropTypes.bool,
     vm: PropTypes.instanceOf(VM).isRequired
 };
 GUIComponent.defaultProps = {
