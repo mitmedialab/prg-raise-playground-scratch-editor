@@ -1,5 +1,5 @@
 /**
- * @fileoverview
+ * @file
  * Object representing a Scratch Comment (block or workspace).
  */
 
@@ -15,7 +15,7 @@ class Comment {
      * @param {number} width The width of the comment when it is full size.
      * @param {number} height The height of the comment when it is full size.
      * @param {boolean} minimized Whether the comment is minimized.
-     * @constructor
+     * @class
      */
     constructor (id, text, x, y, width, height, minimized) {
         this.id = id || uid();
@@ -31,7 +31,7 @@ class Comment {
     toXML () {
         return `<comment id="${this.id}" x="${this.x}" y="${
             this.y}" w="${this.width}" h="${this.height}" pinned="${
-            this.blockId !== null}" minimized="${this.minimized}">${xmlEscape(this.text)}</comment>`;
+            !this.minimized}" collapsed="${this.minimized}">${xmlEscape(this.text)}</comment>`;
     }
 
     // TODO choose min and defaults for width and height

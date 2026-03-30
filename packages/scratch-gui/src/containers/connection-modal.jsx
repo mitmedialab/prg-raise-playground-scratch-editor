@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import bindAll from 'lodash.bindall';
 import ConnectionModalComponent, {PHASES} from '../components/connection-modal/connection-modal.jsx';
-import VM from 'scratch-vm';
+import VM from '@scratch/scratch-vm';
 import analytics from '../lib/analytics';
 import extensionData from '../lib/libraries/extensions/index.jsx';
 import {connect} from 'react-redux';
@@ -144,8 +144,11 @@ class ConnectionModal extends React.Component {
                 extensionId={this.props.extensionId}
                 name={this.state.extension && this.state.extension.name}
                 phase={this.state.phase}
+                prescanMessage={this.state.extension && this.state.extension.prescanMessage}
+                scanBeginMessage={this.state.extension && this.state.extension.scanBeginMessage}
                 title={this.props.extensionId}
                 useAutoScan={this.state.extension && this.state.extension.useAutoScan}
+                useExternalPeripheralList={this.props.useExternalPeripheralList}
                 vm={this.props.vm}
                 onCancel={this.handleCancel}
                 onConnected={this.handleConnected}
@@ -163,6 +166,7 @@ class ConnectionModal extends React.Component {
 ConnectionModal.propTypes = {
     extensionId: PropTypes.string.isRequired,
     onCancel: PropTypes.func.isRequired,
+    useExternalPeripheralList: PropTypes.bool,
     vm: PropTypes.instanceOf(VM).isRequired
 };
 

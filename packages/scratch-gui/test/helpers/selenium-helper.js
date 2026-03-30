@@ -1,9 +1,14 @@
 // some server-side things don't fully fail until a 90-second timeout
 // allow time for that so we get a more specific error message
-jest.setTimeout(95000); // eslint-disable-line no-undef
+jest.setTimeout(95000);
+
+import {promises as fs} from 'fs';
+import path from 'path';
 
 import bindAll from 'lodash.bindall';
 import webdriver from 'selenium-webdriver';
+
+import packageJson from '../../package.json';
 
 const {Button, By, until} = webdriver;
 
@@ -13,6 +18,31 @@ const USE_HEADLESS = process.env.USE_HEADLESS !== 'no';
 // if we hit the Jasmine default timeout then we get a terse message that we can't control.
 // The Jasmine default timeout is 30 seconds so make sure this is lower.
 const DEFAULT_TIMEOUT_MILLISECONDS = 20 * 1000;
+
+// There doesn't seem to be a way to ask Jest (or jest-junit) for its output directory. The idea here is that if we
+// change the way we define the output directory in package.json, move it to a separate config file, etc.,
+// a helpful error is better than a confusing error or silently dropping error output from CI.
+const testResultsDir = packageJson.jest.reporters
+    .map(r => r[1].outputDirectory)
+    .filter(x => x)[0];
+if (!testResultsDir) {
+    throw new Error('Could not determine Jest test results directory');
+}
+
+/**
+ * Recursively check if this error or any errors in its causal chain have been "enhanced" by `enhanceError`.
+ * @param {Error} error The error to check.
+ * @returns {boolean} True if the error or any of its causes have been enhanced.
+ */
+const isEnhancedError = error => {
+    while (error) {
+        if (error.scratchEnhancedError) {
+            return true;
+        }
+        error = error.cause;
+    }
+    return false;
+};
 
 /**
  * Add more debug information to an error:
@@ -26,6 +56,7 @@ const DEFAULT_TIMEOUT_MILLISECONDS = 20 * 1000;
  * @returns {Promise<Error>} The outerError, with the cause embedded.
  */
 const enhanceError = async (outerError, cause, driver) => {
+    outerError.scratchEnhancedError = true;
     if (cause) {
         // This is the official way to nest errors in modern Node.js, but Jest ignores this field.
         // It's here in case a future version uses it, or in case the caller does.
@@ -36,21 +67,45 @@ const enhanceError = async (outerError, cause, driver) => {
     } else {
         outerError.message += '\nCause: unknown';
     }
-    if (driver) {
-        const url = await driver.getCurrentUrl();
-        const title = await driver.getTitle();
-        const pageSource = await driver.getPageSource();
+    // Don't make a second copy of this debug info if an inner error has already done it,
+    // especially since retrieving the browser log is a destructive operation.
+    if (driver && !isEnhancedError(cause)) {
+        await fs.mkdir(testResultsDir, {recursive: true});
+        const errorInfoDir = await fs.mkdtemp(`${testResultsDir}/selenium-error-`);
+        outerError.message += `\nDebug info stored in: ${errorInfoDir}`;
+
+        const pageInfoPath = path.join(errorInfoDir, 'info.json');
+        await fs.writeFile(pageInfoPath, JSON.stringify({
+            currentUrl: await driver.getCurrentUrl(),
+            pageTitle: await driver.getTitle()
+        }, null, 2));
+
+        const pageSourcePath = path.join(errorInfoDir, 'page.html');
+        await fs.writeFile(pageSourcePath, await driver.getPageSource());
+
+        const browserLogPath = path.join(errorInfoDir, 'browser-log.txt');
         const browserLogEntries = await driver.manage()
             .logs()
             .get('browser');
-        const browserLogText = browserLogEntries.map(entry => entry.message).join('\n');
-        outerError.message += `\nBrowser URL: ${url}`;
-        outerError.message += `\nBrowser title: ${title}`;
-        outerError.message += `\nBrowser logs:\n*****\n${browserLogText}\n*****\n`;
-        outerError.message += `\nBrowser page source:\n*****\n${pageSource}\n*****\n`;
+        await fs.writeFile(browserLogPath, JSON.stringify(browserLogEntries, null, 2));
     }
     return outerError;
 };
+
+const scopes = {
+    blocklyFlyoutScope: '*[contains(concat(" ", @class, " "), " blocklyFlyout ")]',
+    blocksTab: "*[@id='panel:r0:0']",
+    categoryContainer: '*[contains(concat(" ", @class, " "), " blocklyToolboxCategoryContainer ")]',
+    costumesTab: "*[@id='panel:r0:1']",
+    modal: '*[contains(concat(" ", @class, " "), " ReactModalPortal ")]',
+    reportedValue: '*[contains(concat(" ", @class, " "), " blocklyDropDownContent ")]',
+    soundsTab: "*[@id='panel:r0:2']",
+    spriteTile: '*[contains(concat(" ", @class), " sprite-selector-item")]',
+    menuBar: '*[contains(concat(" ", @class), " menu-bar_menu-bar_")]',
+    monitors: '*[contains(concat(" ", @class), " stage_monitor-wrapper_")]',
+    contextMenu: '*[contains(concat(" ", @class), " context-menu")]'
+};
+
 
 class SeleniumHelper {
     constructor () {
@@ -58,6 +113,11 @@ class SeleniumHelper {
             'clickText',
             'clickButton',
             'clickXpath',
+            'scopeForBlockId',
+            'scopeForBlockText',
+            'scopeForCategoryId',
+            'scopeForCategoryText',
+            'scopeForFlyoutBlock',
             'clickBlocksCategory',
             'elementIsVisible',
             'findByText',
@@ -105,19 +165,14 @@ class SeleniumHelper {
     /**
      * List of useful xpath scopes for finding elements.
      * @returns {object} An object mapping names to xpath strings.
+     * @note Do not check for an exact class name with `contains(@class, "foo")`: that will match `class="foo2"`.
+     * Instead, use `contains(concat(" ", @class, " "), " foo ")`, which in this example will correctly report that
+     * " foo2 " does not contain " foo ". Similarly, to check if an element has any class starting with "foo", use
+     * `contains(concat(" ", @class), " foo")`. Checking with `starts-with(@class, "foo")`, for example, will only
+     * work if the whole "class" attribute starts with "foo" -- it will fail if another class is listed first.
      */
     get scope () {
-        return {
-            blocksTab: "*[@id='react-tabs-1']",
-            costumesTab: "*[@id='react-tabs-3']",
-            modal: '*[@class="ReactModalPortal"]',
-            reportedValue: '*[@class="blocklyDropDownContent"]',
-            soundsTab: "*[@id='react-tabs-5']",
-            spriteTile: '*[starts-with(@class,"react-contextmenu-wrapper")]',
-            menuBar: '*[contains(@class,"menu-bar_menu-bar_")]',
-            monitors: '*[starts-with(@class,"stage_monitor-wrapper")]',
-            contextMenu: '*[starts-with(@class,"react-contextmenu")]'
-        };
+        return scopes;
     }
 
     /**
@@ -287,7 +342,58 @@ class SeleniumHelper {
     }
 
     /**
-     * Click a category in the blocks pane.
+     * Calculate an XPath expression to find a block in the blocks panel.
+     * Clicking this the element at this XPath should run the block.
+     * @param {string} blockId The identifier (opcode) of the block to find. Example: 'motion_movesteps'.
+     * @returns {string} An XPath expression that finds the block.
+     */
+    scopeForBlockId (blockId) {
+        return `*[contains(concat(" ", @class, " "), " blocklyBlock ") and contains(concat(" ", @class, " "), " ${
+            blockId} ")]`;
+    }
+
+    /**
+     * Calculate an XPath expression to find a block in the flyout.
+     * Clicking this the element at this XPath should run the block.
+     * @param {string} blockId The identifier (opcode) of the block to find. Example: 'motion_movesteps'.
+     * @returns {string} An XPath expression that finds the block in the flyout.
+     */
+    scopeForFlyoutBlock (blockId) {
+        return `${scopes.blocklyFlyoutScope}//${this.scopeForBlockId(blockId)}`;
+    }
+
+    /**
+     * Calculate an XPath expression to find a block in the blocks panel.
+     * Clicking this the element at this XPath should run the block.
+     * @param {string} blockText The text of the block to find. Depends on the current language!
+     * @returns {string} An XPath expression that finds the block.
+     */
+    scopeForBlockText (blockText) {
+        return `*[contains(text(), "${blockText}")]/ancestor::*[contains(concat(" ", @class, " "), " blocklyBlock ")]`;
+    }
+
+    /**
+     * Calculate an XPath expression to find a category in the blocks panel.
+     * Clicking this the element at this XPath should scroll the category into view.
+     * @param {string} categoryId The ID of the category to find. Example: 'motion'.
+     * @returns {string} An XPath expression that finds the category.
+     */
+    scopeForCategoryId (categoryId) {
+        return `*[@id="${categoryId}"]/ancestor::${scopes.categoryContainer}`;
+    }
+
+    /**
+     * Calculate an XPath expression to find a category in the blocks panel.
+     * Clicking this the element at this XPath should scroll the category into view.
+     * @param {string} categoryText The text of the category to find. Depends on the current language!
+     * @returns {string} An XPath expression that finds the category.
+     */
+    scopeForCategoryText (categoryText) {
+        return `*[contains(text(), "${categoryText}")]/ancestor::${scopes.categoryContainer}`;
+    }
+
+    /**
+     * Click a category in the blocks pane, then wait to allow scroll time.
      * @param {string} categoryText The text of the category to click.
      * @returns {Promise<void>} A promise that resolves when the category is clicked.
      */
@@ -298,9 +404,10 @@ class SeleniumHelper {
         // then finally click the toolbox text.
         try {
             await this.setTitle(`clickBlocksCategory ${categoryText}`);
-            await this.findByXpath('//div[contains(@class, "blocks_blocks")]');
-            await this.driver.sleep(100);
-            await this.clickText(categoryText, 'div[contains(@class, "blocks_blocks")]');
+
+            const desiredCategoryContainer = this.scopeForCategoryText(categoryText);
+            await this.clickXpath(`//${desiredCategoryContainer}`);
+
             await this.driver.sleep(500); // Wait for scroll to finish
         } catch (cause) {
             throw await enhanceError(outerError, cause);

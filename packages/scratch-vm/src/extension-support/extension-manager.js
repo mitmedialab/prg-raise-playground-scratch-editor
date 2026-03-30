@@ -39,6 +39,7 @@ const builtinExtensions = {
     microbitRobot: () => require('../extensions/scratch3_microbot'),
     musiccreation: () => require('../extensions/scratch3_musiccreation'),
     /** END PRG Additions */
+    faceSensing: () => require('../extensions/scratch3_face_sensing')
 };
 
 /**
@@ -84,7 +85,6 @@ class ExtensionManager {
         /**
          * FIFO queue of extensions which have been requested but not yet loaded in a worker,
          * along with promise resolution functions to call once the worker is ready or failed.
-         *
          * @type {Array.<PendingExtensionWorker>}
          */
         this.pendingExtensions = [];

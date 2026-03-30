@@ -1,7 +1,7 @@
 import bindAll from 'lodash.bindall';
 import PropTypes from 'prop-types';
 import React from 'react';
-import VM from 'scratch-vm';
+import VM from '@scratch/scratch-vm';
 import {connect} from 'react-redux';
 
 import ControlsComponent from '../components/controls/controls.jsx';
@@ -31,8 +31,8 @@ class Controls extends React.Component {
     }
     render () {
         const {
-            vm, // eslint-disable-line no-unused-vars
-            isStarted, // eslint-disable-line no-unused-vars
+            vm,
+            isStarted,
             projectRunning,
             turbo,
             recording,

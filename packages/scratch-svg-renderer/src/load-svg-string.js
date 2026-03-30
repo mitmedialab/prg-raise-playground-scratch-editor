@@ -1,13 +1,12 @@
-const DOMPurify = require('isomorphic-dompurify');
 const SvgElement = require('./svg-element');
 const convertFonts = require('./font-converter');
-const fixupSvgString = require('./fixup-svg-string');
 const transformStrokeWidths = require('./transform-applier');
+const {sanitizeSvgText} = require('./sanitize-svg');
 
 /**
  * @param {SVGElement} svgTag the tag to search within
  * @param {string} [tagName] svg tag to search for (or collect all elements if not given)
- * @return {Array} a list of elements with the given tagname
+ * @returns {Array} a list of elements with the given tagname
  */
 const collectElements = (svgTag, tagName) => {
     const elts = [];
@@ -163,7 +162,7 @@ const transformText = svgTag => {
  * This is used to enlarge the computed bounding box, which doesn't take
  * stroke width into account.
  * @param {SVGSVGElement} rootNode The root SVG node to traverse.
- * @return {number} The largest stroke width in the SVG.
+ * @returns {number} The largest stroke width in the SVG.
  */
 const findLargestStrokeWidth = rootNode => {
     let largestStrokeWidth = 0;
@@ -208,24 +207,10 @@ const transformMeasurements = svgTag => {
     // which returns the full bounding-box of all drawn SVG
     // elements, similar to how Scratch 2.0 did measurement.
     const svgSpot = document.createElement('span');
-    // Since we're adding user-provided SVG to document.body,
-    // sanitizing is required. This should not affect bounding box calculation.
-    // outerHTML is attribute of Element (and not HTMLElement), so use it instead of
-    // calling serializer or toString()
-    // NOTE: svgTag remains untouched!
-    const rawValue = svgTag.outerHTML;
-    const sanitizedValue = DOMPurify.sanitize(rawValue, {
-        // Use SVG profile (no HTML elements)
-        USE_PROFILES: {svg: true},
-        // Remove some tags that Scratch does not use.
-        FORBID_TAGS: ['a', 'audio', 'canvas', 'video'],
-        // Allow data URI in image tags (e.g. SVGs converted from bitmap)
-        ADD_DATA_URI_TAGS: ['image']
-    });
     let bbox;
     try {
         // Insert sanitized value.
-        svgSpot.innerHTML = sanitizedValue;
+        svgSpot.innerHTML = svgTag.outerHTML;
         document.body.appendChild(svgSpot);
         // Take the bounding box. We have to get elements via svgSpot
         // because we added it via innerHTML.
@@ -315,13 +300,16 @@ const normalizeSvg = (svgTag, fromVersion2) => {
  * mimic Scratch 2.0's SVG rendering.
  * @param {!string} svgString String of SVG data to draw in quirks-mode.
  * @param {boolean} [fromVersion2] True if we should perform conversion from version 2 to version 3 svg.
- * @return {SVGSVGElement} The normalized SVG element.
+ * @returns {SVGSVGElement} The normalized SVG element.
  */
 const loadSvgString = (svgString, fromVersion2) => {
     // Parse string into SVG XML.
     const parser = new DOMParser();
-    svgString = fixupSvgString(svgString);
-    const svgDom = parser.parseFromString(svgString, 'text/xml');
+
+    // Since we're adding user-provided SVG to document.body as part of normalization,
+    // sanitization is required. This should not affect bounding box calculation.
+    const sanitizedSvgString = sanitizeSvgText(svgString);
+    const svgDom = parser.parseFromString(sanitizedSvgString, 'text/xml');
     if (svgDom.childNodes.length < 1 ||
         svgDom.documentElement.localName !== 'svg') {
         throw new Error('Document does not appear to be SVG.');

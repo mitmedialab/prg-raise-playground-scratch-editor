@@ -1,9 +1,14 @@
 import bindAll from 'lodash.bindall';
 import PropTypes from 'prop-types';
 import React from 'react';
+import {connect} from 'react-redux';
+import {compose} from 'redux';
 import {injectIntl} from 'react-intl';
 
 import LibraryItemComponent from '../components/library-item/library-item.jsx';
+import {PLATFORM} from '../lib/platform.js';
+import {KEY} from '../lib/navigation-keys.js';
+
 
 class LibraryItem extends React.PureComponent {
     constructor (props) {
@@ -12,7 +17,7 @@ class LibraryItem extends React.PureComponent {
             'handleBlur',
             'handleClick',
             'handleFocus',
-            'handleKeyPress',
+            'handleKeyDown',
             'handleMouseEnter',
             'handleMouseLeave',
             'handlePlay',
@@ -21,6 +26,7 @@ class LibraryItem extends React.PureComponent {
             'startRotatingIcons',
             'stopRotatingIcons'
         ]);
+        this.hasIconsArray = Array.isArray(props.icons);
         this.state = {
             iconIndex: 0,
             isRotatingIcon: false
@@ -43,17 +49,34 @@ class LibraryItem extends React.PureComponent {
             this.handleMouseEnter(id);
         }
     }
-    handleKeyPress (e) {
-        if (e.key === ' ' || e.key === 'Enter') {
+    handleKeyDown (e) {
+        if (this.props.disabled) {
+            return;
+        }
+
+        if (e.key === KEY.ENTER) {
             e.preventDefault();
             this.props.onSelect(this.props.id);
         }
+        /*
+            - Costumes, Sprites, and Backdrops are selectable with both ENTER and SPACE.
+            - Sounds are selectable with ENTER; SPACE previews the sound.
+        */
+        if (e.key === KEY.SPACE) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (this.props.showPlayButton) {
+                this.handlePlay();
+            } else {
+                this.props.onSelect(this.props.id);
+            }
+        }
     }
     handleMouseEnter () {
-        // only show hover effects on the item if not showing a play button
         if (!this.props.showPlayButton) {
             this.props.onMouseEnter(this.props.id);
-            if (this.props.icons && this.props.icons.length) {
+            if (this.hasIconsArray) {
                 this.stopRotatingIcons();
                 this.setState({
                     isRotatingIcon: true
@@ -62,10 +85,9 @@ class LibraryItem extends React.PureComponent {
         }
     }
     handleMouseLeave () {
-        // only show hover effects on the item if not showing a play button
         if (!this.props.showPlayButton) {
             this.props.onMouseLeave(this.props.id);
-            if (this.props.icons && this.props.icons.length) {
+            if (this.hasIconsArray) {
                 this.setState({
                     isRotatingIcon: false
                 }, this.stopRotatingIcons);
@@ -91,23 +113,22 @@ class LibraryItem extends React.PureComponent {
         const nextIconIndex = (this.state.iconIndex + 1) % this.props.icons.length;
         this.setState({iconIndex: nextIconIndex});
     }
-    curIconMd5 () {
-        const iconMd5Prop = this.props.iconMd5;
-        if (this.props.icons &&
-            this.state.isRotatingIcon &&
-            this.state.iconIndex < this.props.icons.length) {
-            const icon = this.props.icons[this.state.iconIndex] || {};
-            return icon.md5ext || // 3.0 library format
-                icon.baseLayerMD5 || // 2.0 library format, TODO GH-5084
-                iconMd5Prop;
+    curIconSource () {
+        if (this.hasIconsArray) {
+            if (this.state.isRotatingIcon &&
+                this.state.iconIndex < this.props.icons.length &&
+                this.props.icons[this.state.iconIndex]) {
+                // multiple icons, currently animating: show current frame
+                return this.props.icons[this.state.iconIndex];
+            }
+            // multiple icons, not currently animating: show first frame
+            return this.props.icons[0];
         }
-        return iconMd5Prop;
+        // single icon
+        return this.props.icons;
     }
     render () {
-        const iconMd5 = this.curIconMd5();
-        const iconURL = iconMd5 ?
-            `https://cdn.assets.scratch.mit.edu/internalapi/asset/${iconMd5}/get/` :
-            this.props.iconRawURL;
+        const iconSource = this.curIconSource();
         return (
             <LibraryItemComponent
                 bluetoothRequired={this.props.bluetoothRequired}
@@ -117,26 +138,31 @@ class LibraryItem extends React.PureComponent {
                 extensionId={this.props.extensionId}
                 featured={this.props.featured}
                 hidden={this.props.hidden}
-                iconURL={iconURL}
-                icons={this.props.icons}
+                iconSource={iconSource}
                 id={this.props.id}
                 insetIconURL={this.props.insetIconURL}
                 internetConnectionRequired={this.props.internetConnectionRequired}
                 isPlaying={this.props.isPlaying}
                 name={this.props.name}
                 showPlayButton={this.props.showPlayButton}
+                platform={this.props.platform}
                 onBlur={this.handleBlur}
                 onClick={this.handleClick}
                 onFocus={this.handleFocus}
-                onKeyPress={this.handleKeyPress}
+                onKeyDown={this.handleKeyDown}
                 onMouseEnter={this.handleMouseEnter}
                 onMouseLeave={this.handleMouseLeave}
                 onPlay={this.handlePlay}
                 onStop={this.handleStop}
+                isMemberOnly={this.props.isMemberOnly}
             />
         );
     }
 }
+
+const mapStateToProps = state => ({
+    platform: state.scratchGui.platform.platform
+});
 
 LibraryItem.propTypes = {
     bluetoothRequired: PropTypes.bool,
@@ -149,15 +175,11 @@ LibraryItem.propTypes = {
     extensionId: PropTypes.string,
     featured: PropTypes.bool,
     hidden: PropTypes.bool,
-    iconMd5: PropTypes.string,
-    iconRawURL: PropTypes.string,
-    icons: PropTypes.arrayOf(
-        PropTypes.shape({
-            baseLayerMD5: PropTypes.string, // 2.0 library format, TODO GH-5084
-            md5ext: PropTypes.string // 3.0 library format
-        })
-    ),
-    id: PropTypes.number.isRequired,
+    icons: PropTypes.oneOfType([
+        LibraryItemComponent.propTypes.iconSource, // single icon
+        PropTypes.arrayOf(LibraryItemComponent.propTypes.iconSource) // rotating icons
+    ]),
+    id: PropTypes.string.isRequired,
     insetIconURL: PropTypes.string,
     internetConnectionRequired: PropTypes.bool,
     isPlaying: PropTypes.bool,
@@ -168,7 +190,12 @@ LibraryItem.propTypes = {
     onMouseEnter: PropTypes.func.isRequired,
     onMouseLeave: PropTypes.func.isRequired,
     onSelect: PropTypes.func.isRequired,
-    showPlayButton: PropTypes.bool
+    platform: PropTypes.oneOf(Object.keys(PLATFORM)),
+    showPlayButton: PropTypes.bool,
+    isMemberOnly: PropTypes.bool
 };
 
-export default injectIntl(LibraryItem);
+export default compose(
+    injectIntl,
+    connect(mapStateToProps)
+)(LibraryItem);

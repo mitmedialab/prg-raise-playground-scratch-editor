@@ -1,5 +1,6 @@
 const JSZip = require('jszip');
 const log = require('../util/log');
+const {sanitizeSvg} = require('@scratch/scratch-svg-renderer');
 
 /**
  * Deserializes sound from file into storage cache so that it can
@@ -10,7 +11,7 @@ const log = require('../util/log');
  * @param {string} assetFileName Optional file name for the given asset
  * (sb2 files have filenames of the form [int].[ext],
  * sb3 files have filenames of the form [md5].[ext])
- * @return {Promise} Promise that resolves after the described sound has been stored
+ * @returns {Promise} Promise that resolves after the described sound has been stored
  * into the runtime storage cache, the sound was already stored, or an error has
  * occurred.
  */
@@ -70,7 +71,7 @@ const deserializeSound = function (sound, runtime, zip, assetFileName) {
  * sb3 files have filenames of the form [md5].[ext])
  * @param {string} textLayerFileName Optional file name for the given asset's text layer
  * (sb2 only; files have filenames of the form [int].png)
- * @return {Promise} Promise that resolves after the described costume has been stored
+ * @returns {Promise} Promise that resolves after the described costume has been stored
  * into the runtime storage cache, the costume was already stored, or an error has
  * occurred.
  */
@@ -156,6 +157,11 @@ const deserializeCostume = function (costume, runtime, zip, assetFileName, textL
 
     return Promise.all([textLayerFilePromise,
         costumeFile.async('uint8array')
+            .then(data =>
+                (costumeFormat === 'svg' ?
+                    sanitizeSvg.sanitizeByteStream(data) :
+                    data)
+            )
             .then(data => storage.createAsset(
                 assetType,
                 // TODO eventually we want to map non-png's to their actual file types?

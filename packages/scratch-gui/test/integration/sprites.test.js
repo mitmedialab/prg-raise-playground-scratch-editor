@@ -4,6 +4,7 @@ import {StaleElementReferenceError} from 'selenium-webdriver/lib/error';
 import until from 'selenium-webdriver/lib/until';
 
 const {
+    clickBlocksCategory,
     clickText,
     clickXpath,
     elementIsVisible,
@@ -35,7 +36,7 @@ describe('Working with sprites', () => {
         await clickXpath('//button[@aria-label="Choose a Sprite"]');
         await clickText('Apple', scope.modal); // Closes modal
         await rightClickText('Apple', scope.spriteTile); // Make sure it is there
-        await clickText('Motion'); // Make sure we are back to the code tab
+        await clickBlocksCategory('Motion'); // Make sure we are back to the code tab
         const logs = await getLogs();
         await expect(logs).toEqual([]);
     });
@@ -63,11 +64,12 @@ describe('Working with sprites', () => {
         await expect(logs).toEqual([]);
     });
 
-    test('Deleting only sprite does not crash', async () => {
+    test('Deleting only sprite does not crash with changed name', async () => {
         await loadUri(uri);
         await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for scroll animation
         await rightClickText('Sprite1', scope.spriteTile);
-        await clickText('delete', scope.spriteTile);
+        await clickText('delete', scope.contextMenu);
+        await clickText('yes', scope.modal);
         // Confirm that the stage has been switched to
         await findByText('Stage selected: no motion blocks');
         const logs = await getLogs();
@@ -78,6 +80,7 @@ describe('Working with sprites', () => {
         await loadUri(uri);
         await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for scroll animation
         await clickXpath('//*[@aria-label="Delete"]'); // Only visible close button is on the sprite
+        await clickText('yes', scope.modal);
         // Confirm that the stage has been switched to
         await findByText('Stage selected: no motion blocks');
         const logs = await getLogs();

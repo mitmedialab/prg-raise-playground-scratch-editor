@@ -1,13 +1,14 @@
 import classNames from 'classnames';
 import {connect} from 'react-redux';
 import {compose} from 'redux';
-import {defineMessages, FormattedMessage, injectIntl, intlShape} from 'react-intl';
+import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
+import intlShape from '../../lib/intlShape.js';
 import PropTypes from 'prop-types';
 import bindAll from 'lodash.bindall';
 import bowser from 'bowser';
 import React from 'react';
 
-import VM from 'scratch-vm';
+import VM from '@scratch/scratch-vm';
 
 import Box from '../box/box.jsx';
 import Button from '../button/button.jsx';
@@ -21,7 +22,7 @@ import MenuBarMenu from './menu-bar-menu.jsx';
 import {MenuItem, MenuSection} from '../menu/menu.jsx';
 import ProjectTitleInput from './project-title-input.jsx';
 import AuthorInfo from './author-info.jsx';
-import AccountNav from '../../containers/account-nav.jsx';
+import AccountNav from '../../components/menu-bar/account-nav.jsx';
 import LoginDropdown from './login-dropdown.jsx';
 import SB3Downloader from '../../containers/sb3-downloader.jsx';
 import DeletionRestorer from '../../containers/deletion-restorer.jsx';
@@ -31,7 +32,7 @@ import GoogleChooser from '../google-drive-picker/google-drive-picker.jsx';
 import SettingsMenu from './settings-menu.jsx';
 
 import {setProjectTitle} from '../../reducers/project-title';
-import {openTipsLibrary} from '../../reducers/modals';
+import {openTipsLibrary, openDebugModal} from '../../reducers/modals';
 import {setPlayer} from '../../reducers/mode';
 import {
     isTimeTravel220022BC,
@@ -75,6 +76,7 @@ import {
 } from '../../reducers/menus';
 
 import collectMetadata from '../../lib/collect-metadata';
+import {PLATFORM} from '../../lib/platform';
 
 import styles from './menu-bar.css';
 
@@ -86,8 +88,10 @@ import dropdownCaret from './dropdown-caret.svg';
 import aboutIcon from './icon--about.svg';
 import fileIcon from './icon--file.svg';
 import editIcon from './icon--edit.svg';
+import debugIcon from '../debug-modal/icons/icon--debug.svg';
 
 import scratchLogo from './raise-white.png';
+import scratchLogoAndroid from './scratch-logo-android.svg';
 import ninetiesLogo from './nineties_logo.svg';
 import catLogo from './cat_logo.svg';
 import prehistoricLogo from './prehistoric-logo.svg';
@@ -99,14 +103,22 @@ import loadScript from 'load-script';
 const GOOGLE_SDK_URL = 'https://apis.google.com/js/api.js';
 let scriptLoadingStarted = false;
 
+import {AccountMenuOptionsPropTypes} from '../../lib/account-menu-options';
 
 const ariaMessages = defineMessages({
     tutorials: {
         id: 'gui.menuBar.tutorialsLibrary',
         defaultMessage: 'Tutorials',
         description: 'accessibility text for the tutorials button'
+    },
+    debug: {
+        id: 'gui.menuBar.debug',
+        defaultMessage: 'Debug',
+        description: 'accessibility text for the debug button'
     }
 });
+
+const getScratchLogo = platform => (platform === PLATFORM.ANDROID ? scratchLogoAndroid : scratchLogo);
 
 const MenuBarItemTooltip = ({
     children,
@@ -298,7 +310,7 @@ class MenuBar extends React.Component {
             } else if (mode === '220022BC') {
                 document.getElementById('logo_img').src = prehistoricLogo;
             } else {
-                document.getElementById('logo_img').src = this.props.logo;
+                document.getElementById('logo_img').src = getScratchLogo(this.props.platform);
             }
 
             this.props.onSetTimeTravelMode(mode);
@@ -350,7 +362,7 @@ class MenuBar extends React.Component {
         default: {
             return (<FormattedMessage
                 defaultMessage="Restore"
-                description="Menu bar item for restoring the last deleted item in its disabled state." /* eslint-disable-line max-len */
+                description="Menu bar item for restoring the last deleted item in its disabled state." /* eslint-disable-line @stylistic/max-len */
                 id="gui.menuBar.restore"
             />);
         }
@@ -502,7 +514,7 @@ class MenuBar extends React.Component {
                 className={classNames(styles.menuBarItem, styles.hoverable, {
                     [styles.active]: this.props.aboutMenuOpen
                 })}
-                onMouseUp={this.props.onRequestOpenAbout}
+                onClick={this.props.onRequestOpenAbout}
             >
                 <img
                     className={styles.aboutIcon}
@@ -579,12 +591,18 @@ class MenuBar extends React.Component {
         );
         // Show the About button only if we have a handler for it (like in the desktop app)
         const aboutButton = this.buildAboutMenu(this.props.onClickAbout);
+
+        const menuOpts = this.props.accountMenuOptions;
+
         return (
             <Box
                 className={classNames(
                     this.props.className,
                     styles.menuBar
                 )}
+                aria-label={this.props.ariaLabel}
+                role={this.props.ariaRole}
+                element="header"
             >
                 <div className={styles.mainMenu}>
                     <div className={styles.fileGroup}>
@@ -596,13 +614,16 @@ class MenuBar extends React.Component {
                                     [styles.clickable]: typeof this.props.onClickLogo !== 'undefined'
                                 })}
                                 draggable={false}
-                                src={this.props.logo}
+                                src={getScratchLogo(this.props.platform)}
                                 onClick={this.props.onClickLogo}
                             />
                         </div>
-                        {(this.props.canChangeTheme || this.props.canChangeLanguage) && (<SettingsMenu
+                        {(this.props.canChangeColorMode || this.props.canChangeLanguage || this.props.canChangeTheme) &&
+                        (<SettingsMenu
                             canChangeLanguage={this.props.canChangeLanguage}
+                            canChangeColorMode={this.props.canChangeColorMode}
                             canChangeTheme={this.props.canChangeTheme}
+                            hasActiveMembership={this.props.hasActiveMembership}
                             isRtl={this.props.isRtl}
                             onRequestClose={this.props.onRequestCloseSettings}
                             onRequestOpen={this.props.onClickSettings}
@@ -613,7 +634,7 @@ class MenuBar extends React.Component {
                                 className={classNames(styles.menuBarItem, styles.hoverable, {
                                     [styles.active]: this.props.fileMenuOpen
                                 })}
-                                onMouseUp={this.props.onClickFile}
+                                onClick={this.props.onClickFile}
                             >
                                 <img src={fileIcon} />
                                 <span className={styles.collapsibleLabel}>
@@ -670,7 +691,7 @@ class MenuBar extends React.Component {
                                             >
                                                 <FormattedMessage
                                                     defaultMessage="Save to your computer"
-                                                    description="Menu bar item for downloading a project to your computer" // eslint-disable-line max-len
+                                                    description="Menu bar item for downloading a project to your computer" // eslint-disable-line @stylistic/max-len
                                                     id="gui.menuBar.downloadToComputer"
                                                 />
                                             </MenuItem>
@@ -716,7 +737,7 @@ class MenuBar extends React.Component {
                             className={classNames(styles.menuBarItem, styles.hoverable, {
                                 [styles.active]: this.props.editMenuOpen
                             })}
-                            onMouseUp={this.props.onClickEdit}
+                            onClick={this.props.onClickEdit}
                         >
                             <img src={editIcon} />
                             <span className={styles.collapsibleLabel}>
@@ -768,7 +789,7 @@ class MenuBar extends React.Component {
                                 className={classNames(styles.menuBarItem, styles.hoverable, {
                                     [styles.active]: this.props.modeMenuOpen
                                 })}
-                                onMouseUp={this.props.onClickMode}
+                                onClick={this.props.onClickMode}
                             >
                                 <div className={classNames(styles.editMenu)}>
                                     <FormattedMessage
@@ -830,6 +851,7 @@ class MenuBar extends React.Component {
                             projectTitle={this.props.projectTitle}
                             userId={this.props.authorId}
                             username={this.props.authorUsername}
+                            avatarBadge={this.props.authorAvatarBadge}
                         />
                     ) : null)}
                     <div className={classNames(styles.menuBarItem)}>
@@ -888,7 +910,9 @@ class MenuBar extends React.Component {
                     <div className={styles.fileGroup}>
                         <div
                             aria-label={this.props.intl.formatMessage(ariaMessages.tutorials)}
-                            className={classNames(styles.menuBarItem, styles.hoverable)}
+                            className={
+                                classNames(styles.menuBarItem, styles.noOffset, styles.hoverable, 'tutorials-button')
+                            }
                             onClick={this.props.onOpenTipLibrary}
                         >
                             <img
@@ -897,6 +921,19 @@ class MenuBar extends React.Component {
                             />
                             <span className={styles.tutorialsLabel}>
                                 <FormattedMessage {...ariaMessages.tutorials} />
+                            </span>
+                        </div>
+                        <div
+                            aria-label={this.props.intl.formatMessage(ariaMessages.debug)}
+                            className={classNames(styles.menuBarItem, styles.noOffset, styles.hoverable)}
+                            onClick={this.props.onOpenDebugModal}
+                        >
+                            <img
+                                className={styles.helpIcon}
+                                src={debugIcon}
+                            />
+                            <span className={styles.debugLabel}>
+                                <FormattedMessage {...ariaMessages.debug} />
                             </span>
                         </div>
                     </div>
@@ -910,77 +947,100 @@ class MenuBar extends React.Component {
                             <SaveStatus />
                         )}
                     </div>
-                    {this.props.sessionExists ? (
+
+                    {menuOpts.canHaveSession ? (
                         this.props.username ? (
                             // ************ user is logged in ************
                             <React.Fragment>
-                                <a href="/mystuff/">
-                                    <div
-                                        className={classNames(
-                                            styles.menuBarItem,
-                                            styles.hoverable,
-                                            styles.mystuffButton
-                                        )}
-                                    >
-                                        <img
-                                            className={styles.mystuffIcon}
-                                            src={mystuffIcon}
-                                        />
-                                    </div>
-                                </a>
+                                {menuOpts.myStuffUrl ? (
+                                    <a href={menuOpts.myStuffUrl}>
+                                        <div
+                                            className={classNames(
+                                                styles.menuBarItem,
+                                                styles.hoverable,
+                                                styles.mystuffButton
+                                            )}
+                                        >
+                                            <img
+                                                className={styles.mystuffIcon}
+                                                src={mystuffIcon}
+                                            />
+                                        </div>
+                                    </a>
+                                ) : null}
+
                                 <AccountNav
                                     className={classNames(
                                         styles.menuBarItem,
                                         styles.hoverable,
                                         {[styles.active]: this.props.accountMenuOpen}
                                     )}
+
                                     isOpen={this.props.accountMenuOpen}
                                     isRtl={this.props.isRtl}
+
                                     menuBarMenuClassName={classNames(styles.menuBarMenu)}
+
                                     onClick={this.props.onClickAccount}
                                     onClose={this.props.onRequestCloseAccount}
-                                    onLogOut={this.props.onLogOut}
+                                    onLogOut={menuOpts.canLogout ? this.props.onLogOut : null}
+
+                                    username={this.props.username}
+                                    avatarBadge={this.props.avatarBadge}
+
+                                    avatarUrl={menuOpts.avatarUrl}
+                                    myStuffUrl={menuOpts.myStuffUrl}
+                                    profileUrl={menuOpts.profileUrl}
+                                    myClassesUrl={menuOpts.myClassesUrl}
+                                    myClassUrl={menuOpts.myClassUrl}
+                                    accountSettingsUrl={menuOpts.accountSettingsUrl}
                                 />
                             </React.Fragment>
                         ) : (
                             // ********* user not logged in, but a session exists
                             // ********* so they can choose to log in
                             <React.Fragment>
-                                <div
-                                    className={classNames(
-                                        styles.menuBarItem,
-                                        styles.hoverable
-                                    )}
-                                    key="join"
-                                    onMouseUp={this.props.onOpenRegistration}
-                                >
-                                    <FormattedMessage
-                                        defaultMessage="Join Scratch"
-                                        description="Link for creating a Scratch account"
-                                        id="gui.menuBar.joinScratch"
-                                    />
-                                </div>
-                                <div
-                                    className={classNames(
-                                        styles.menuBarItem,
-                                        styles.hoverable
-                                    )}
-                                    key="login"
-                                    onMouseUp={this.props.onClickLogin}
-                                >
-                                    <FormattedMessage
-                                        defaultMessage="Sign in"
-                                        description="Link for signing in to your Scratch account"
-                                        id="gui.menuBar.signIn"
-                                    />
-                                    <LoginDropdown
-                                        className={classNames(styles.menuBarMenu)}
-                                        isOpen={this.props.loginMenuOpen}
-                                        isRtl={this.props.isRtl}
-                                        renderLogin={this.props.renderLogin}
-                                        onClose={this.props.onRequestCloseLogin}
-                                    />
-                                </div>
+                                {menuOpts.canRegister ? (
+                                    <div
+                                        className={classNames(
+                                            styles.menuBarItem,
+                                            styles.hoverable
+                                        )}
+                                        key="join"
+                                        onClick={this.props.onOpenRegistration}
+                                    >
+                                        <FormattedMessage
+                                            defaultMessage="Join Scratch"
+                                            description="Link for creating a Scratch account"
+                                            id="gui.menuBar.joinScratch"
+                                        />
+                                    </div>
+                                ) : null}
+
+                                {menuOpts.canLogin ? (
+                                    <div
+                                        className={classNames(
+                                            styles.menuBarItem,
+                                            styles.hoverable
+                                        )}
+                                        key="login"
+                                        onMouseUp={this.props.onClickLogin}
+                                        onClick={this.props.onClickLogin}
+                                    >
+                                        <FormattedMessage
+                                            defaultMessage="Sign in"
+                                            description="Link for signing in to your Scratch account"
+                                            id="gui.menuBar.signIn"
+                                        />
+                                        <LoginDropdown
+                                            className={classNames(styles.menuBarMenu)}
+                                            isOpen={this.props.loginMenuOpen}
+                                            isRtl={this.props.isRtl}
+                                            renderLogin={this.props.renderLogin}
+                                            onClose={this.props.onRequestCloseLogin}
+                                        />
+                                    </div>
+                                ) : null}
                             </React.Fragment>
                         )
                     ) : (
@@ -1041,11 +1101,15 @@ class MenuBar extends React.Component {
 MenuBar.propTypes = {
     aboutMenuOpen: PropTypes.bool,
     accountMenuOpen: PropTypes.bool,
+    ariaLabel: PropTypes.string,
+    ariaRole: PropTypes.string,
     authorId: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
     authorThumbnailUrl: PropTypes.string,
     authorUsername: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
+    authorAvatarBadge: PropTypes.number,
     autoUpdateProject: PropTypes.func,
     canChangeLanguage: PropTypes.bool,
+    canChangeColorMode: PropTypes.bool,
     canChangeTheme: PropTypes.bool,
     canCreateCopy: PropTypes.bool,
     canCreateNew: PropTypes.bool,
@@ -1060,6 +1124,7 @@ MenuBar.propTypes = {
     editMenuOpen: PropTypes.bool,
     enableCommunity: PropTypes.bool,
     fileMenuOpen: PropTypes.bool,
+    hasActiveMembership: PropTypes.bool,
     intl: intlShape,
     isRtl: PropTypes.bool,
     isShared: PropTypes.bool,
@@ -1098,6 +1163,7 @@ MenuBar.propTypes = {
     onLogOut: PropTypes.func,
     onOpenRegistration: PropTypes.func,
     onOpenTipLibrary: PropTypes.func,
+    onOpenDebugModal: PropTypes.func,
     onProjectTelemetryEvent: PropTypes.func,
     onRequestCloseAbout: PropTypes.func,
     onRequestCloseAccount: PropTypes.func,
@@ -1112,16 +1178,21 @@ MenuBar.propTypes = {
     onShare: PropTypes.func,
     onStartSelectingFileUpload: PropTypes.func,
     onToggleLoginOpen: PropTypes.func,
+    platform: PropTypes.oneOf(Object.keys(PLATFORM)),
     projectTitle: PropTypes.string,
     renderLogin: PropTypes.func,
-    sessionExists: PropTypes.bool,
     settingsMenuOpen: PropTypes.bool,
     shouldSaveBeforeTransition: PropTypes.func,
     showComingSoon: PropTypes.bool,
     username: PropTypes.string,
     vm: PropTypes.instanceOf(VM).isRequired,
     onReceivedProjectTitle: PropTypes.func,
-    userOwnsProject: PropTypes.bool
+    avatarBadge: PropTypes.number,
+    userOwnsProject: PropTypes.bool,
+
+    accountMenuOptions: AccountMenuOptionsPropTypes,
+
+    vm: PropTypes.instanceOf(VM).isRequired
 };
 
 MenuBar.defaultProps = {
@@ -1132,6 +1203,9 @@ MenuBar.defaultProps = {
 const mapStateToProps = (state, ownProps) => {
     const loadingState = state.scratchGui.projectState.loadingState;
     const user = state.session && state.session.session && state.session.session.user;
+    const permissions = state.session && state.session.permissions;
+    const sessionExists = state.session && typeof state.session.session !== 'undefined';
+
     return {
         aboutMenuOpen: aboutMenuOpen(state),
         accountMenuOpen: accountMenuOpen(state),
@@ -1145,30 +1219,51 @@ const mapStateToProps = (state, ownProps) => {
         loginMenuOpen: loginMenuOpen(state),
         modeMenuOpen: modeMenuOpen(state),
         projectTitle: state.scratchGui.projectTitle,
-        sessionExists: state.session && typeof state.session.session !== 'undefined',
         settingsMenuOpen: settingsMenuOpen(state),
-        username: user ? user.username : null,
-        userOwnsProject: ownProps.authorUsername && user &&
-            (ownProps.authorUsername === user.username),
+        username: ownProps.username ?? (user ? user.username : null),
+        avatarBadge: user ? user.membership_avatar_badge : null,
+        userIsEducator: permissions && permissions.educator,
         vm: state.scratchGui.vm,
         mode220022BC: isTimeTravel220022BC(state),
         mode1920: isTimeTravel1920(state),
         mode1990: isTimeTravel1990(state),
         mode2020: isTimeTravel2020(state),
-        modeNow: isTimeTravelNow(state)
+        modeNow: isTimeTravelNow(state),
+
+        platform: state.scratchGui.platform.platform,
+
+        userOwnsProject: ownProps.userOwnsProject ?? (
+            ownProps.authorUsername && user && (ownProps.authorUsername === user.username)
+        ),
+
+        accountMenuOptions: ownProps.accountMenuOptions ?? {
+            canHaveSession: sessionExists ?? false,
+
+            canRegister: true,
+            canLogin: true,
+            canLogout: true,
+
+            avatarUrl: user?.thumbnailUrl,
+            myStuffUrl: '/mystuff/',
+            profileUrl: user && `/users/${user.username}`,
+            myClassesUrl: permissions?.educator ? '/educators/classes/' : null,
+            myClassUrl: user && permissions?.student ? `/classes/${user.classroomId}/` : null,
+            accountSettingsUrl: '/accounts/settings/'
+        }
     };
 };
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch, ownProps) => ({
     autoUpdateProject: () => dispatch(autoUpdateProject()),
     onOpenTipLibrary: () => dispatch(openTipsLibrary()),
+    onOpenDebugModal: () => dispatch(openDebugModal()),
     onClickAccount: () => dispatch(openAccountMenu()),
     onRequestCloseAccount: () => dispatch(closeAccountMenu()),
     onClickFile: () => dispatch(openFileMenu()),
     onRequestCloseFile: () => dispatch(closeFileMenu()),
     onClickEdit: () => dispatch(openEditMenu()),
     onRequestCloseEdit: () => dispatch(closeEditMenu()),
-    onClickLogin: () => dispatch(openLoginMenu()),
+    onClickLogin: ownProps.onClickLogin ?? (() => dispatch(openLoginMenu())),
     onRequestCloseLogin: () => dispatch(closeLoginMenu()),
     onClickMode: () => dispatch(openModeMenu()),
     onRequestCloseMode: () => dispatch(closeModeMenu()),
@@ -1180,8 +1275,8 @@ const mapDispatchToProps = dispatch => ({
     onClickRemix: () => dispatch(remixProject()),
     onClickSave: () => dispatch(manualUpdateProject()),
     onClickSaveAsCopy: () => dispatch(saveProjectAsCopy()),
-    onSeeCommunity: () => dispatch(setPlayer(true)),
     onReceivedProjectTitle: title => dispatch(setProjectTitle(title)),
+    onSeeCommunity: ownProps.onSeeCommunity ?? (() => dispatch(setPlayer(true))),
     onSetTimeTravelMode: mode => dispatch(setTimeTravel(mode))
 });
 

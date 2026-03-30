@@ -1,8 +1,9 @@
 import bindAll from 'lodash.bindall';
 import PropTypes from 'prop-types';
 import React from 'react';
-import VM from 'scratch-vm';
-import { addLocaleData, defineMessages, injectIntl, intlShape } from 'react-intl';
+import VM from '@scratch/scratch-vm';
+import {defineMessages, injectIntl} from 'react-intl';
+import intlShape from '../lib/intlShape.js';
 
 import extensionLibraryContent from '../lib/libraries/extensions/index.jsx';
 
@@ -97,7 +98,7 @@ ExtensionLibrary.propTypes = {
     onCategorySelected: PropTypes.func,
     onRequestClose: PropTypes.func,
     visible: PropTypes.bool,
-    vm: PropTypes.instanceOf(VM).isRequired // eslint-disable-line react/no-unused-prop-types
+    vm: PropTypes.instanceOf(VM).isRequired
 };
 
 export default injectIntl(ExtensionLibrary);

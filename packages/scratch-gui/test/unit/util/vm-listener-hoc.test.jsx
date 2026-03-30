@@ -1,9 +1,10 @@
 import React from 'react';
 import configureStore from 'redux-mock-store';
-import {mount} from 'enzyme';
-import VM from 'scratch-vm';
+import {render} from '@testing-library/react';
+import VM from '@scratch/scratch-vm';
 
 import vmListenerHOC from '../../../src/lib/vm-listener-hoc.jsx';
+import '@testing-library/jest-dom';
 
 describe('VMListenerHOC', () => {
     const mockStore = configureStore();
@@ -25,7 +26,7 @@ describe('VMListenerHOC', () => {
         const Component = () => (<div />);
         const WrappedComponent = vmListenerHOC(Component);
         const onGreenFlag = jest.fn();
-        mount(
+        render(
             <WrappedComponent
                 store={store}
                 vm={vm}
@@ -38,23 +39,28 @@ describe('VMListenerHOC', () => {
     });
 
     test('onGreenFlag is not passed to the children', () => {
-        const Component = () => (<div />);
+        const Component = ({onGreenFlag}) => (
+            <div id="onGreenFlag">{`${onGreenFlag ?
+                onGreenFlag() :
+                onGreenFlag
+            }`}</div>
+        );
         const WrappedComponent = vmListenerHOC(Component);
-        const wrapper = mount(
+        const {container} = render(
             <WrappedComponent
                 store={store}
                 vm={vm}
                 onGreenFlag={jest.fn()}
             />
         );
-        const child = wrapper.find(Component);
-        expect(child.props().onGreenFlag).toBeUndefined();
+        const element = container.querySelector('#onGreenFlag');
+        expect(element).toHaveTextContent(/undefined/i);
     });
 
     test('targetsUpdate event from vm triggers targets update action', () => {
         const Component = () => (<div />);
         const WrappedComponent = vmListenerHOC(Component);
-        mount(
+        render(
             <WrappedComponent
                 store={store}
                 vm={vm}
@@ -79,7 +85,7 @@ describe('VMListenerHOC', () => {
                 vm: vm
             }
         });
-        mount(
+        render(
             <WrappedComponent
                 store={store}
                 vm={vm}
@@ -102,7 +108,7 @@ describe('VMListenerHOC', () => {
                 vm: vm
             }
         });
-        mount(
+        render(
             <WrappedComponent
                 store={store}
                 vm={vm}
@@ -123,7 +129,7 @@ describe('VMListenerHOC', () => {
                 vm: vm
             }
         });
-        mount(
+        render(
             <WrappedComponent
                 store={store}
                 vm={vm}
@@ -154,7 +160,7 @@ describe('VMListenerHOC', () => {
                 vm: vm
             }
         });
-        mount(
+        render(
             <WrappedComponent
                 attachKeyboardEvents
                 store={store}
@@ -162,9 +168,16 @@ describe('VMListenerHOC', () => {
             />
         );
 
-        // keyboard events that do not target the document or body are ignored
-        eventTriggers.keydown({key: 'A', target: null});
+        // keydown with an HTML target (e.g. project title input) should not be forwarded to VM
+        const inputEl = document.createElement('input');
+        eventTriggers.keydown({key: 'A', target: inputEl});
         expect(vm.postIOData).not.toHaveBeenLastCalledWith('keyboard', {key: 'A', isDown: true});
+
+        // keydown with an SVG target (Blockly workspace) should always be forwarded to VM
+        // even when a block has Blockly focus, so game controls work from the Code tab
+        const svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        eventTriggers.keydown({key: 'A', target: svgEl});
+        expect(vm.postIOData).toHaveBeenLastCalledWith('keyboard', {key: 'A', isDown: true});
 
         // keydown/up with target as the document are sent to the vm via postIOData
         eventTriggers.keydown({key: 'A', target: document});

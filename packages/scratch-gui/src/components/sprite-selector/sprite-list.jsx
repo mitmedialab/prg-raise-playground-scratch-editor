@@ -44,6 +44,7 @@ const SpriteList = function (props) {
         >
             <Box
                 className={styles.itemsWrapper}
+                element="ul"
             >
                 {items.map((sprite, index) => {
 
@@ -94,6 +95,8 @@ const SpriteList = function (props) {
                                 onDeleteButtonClick={onDeleteSprite}
                                 onDuplicateButtonClick={onDuplicateSprite}
                                 onExportButtonClick={onExportSprite}
+                                withDeleteConfirmation
+                                deleteConfirmationModalPosition={'left'}
                             />
                         </SortableAsset>
                     );

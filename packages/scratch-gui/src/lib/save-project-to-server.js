@@ -1,10 +1,10 @@
 import queryString from 'query-string';
 import xhr from 'xhr';
-import storage from '../lib/storage';
 
 /**
  * Save a project JSON to the project server.
  * This should eventually live in scratch-www.
+ * @param {string} projectHost the hostname of the project service.
  * @param {number} projectId the ID of the project, null if a new project.
  * @param {object} vmState the JSON project representation.
  * @param {object} params the request params.
@@ -12,9 +12,9 @@ import storage from '../lib/storage';
  * @property {?boolean} params.isCopy a flag indicating if this save is creating a copy.
  * @property {?boolean} params.isRemix a flag indicating if this save is creating a remix.
  * @property {?string} params.title the title of the project.
- * @return {Promise} A promise that resolves when the network request resolves.
+ * @returns {Promise} A promise that resolves when the network request resolves.
  */
-export default function (projectId, vmState, params) {
+export default function (projectHost, projectId, vmState, params) {
     const opts = {
         body: vmState,
         // If we set json:true then the body is double-stringified, so don't
@@ -34,12 +34,12 @@ export default function (projectId, vmState, params) {
     if (creatingProject) {
         Object.assign(opts, {
             method: 'post',
-            url: `${storage.projectHost}/${qs}`
+            url: `${projectHost}/${qs}`
         });
     } else {
         Object.assign(opts, {
             method: 'put',
-            url: `${storage.projectHost}/${projectId}${qs}`
+            url: `${projectHost}/${projectId}${qs}`
         });
     }
     return new Promise((resolve, reject) => {

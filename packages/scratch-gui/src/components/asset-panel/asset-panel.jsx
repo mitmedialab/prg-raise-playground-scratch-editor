@@ -3,20 +3,33 @@ import React from 'react';
 import Box from '../box/box.jsx';
 import Selector from './selector.jsx';
 import styles from './asset-panel.css';
+import PropTypes from 'prop-types';
 
-const AssetPanel = props => (
-    <Box className={styles.wrapper}>
+const AssetPanel = props => {
+    const {ariaLabel, ariaRole, ...restProps} = props;
+
+    return (<Box
+        aria-label={ariaLabel}
+        role={ariaRole}
+        className={styles.wrapper}
+        element="section"
+    >
         <Selector
             className={styles.selector}
-            {...props}
+            {...restProps}
         />
-        <Box className={styles.detailArea}>
+        <Box
+            className={styles.detailArea}
+            element="section"
+        >
             {props.children}
         </Box>
-    </Box>
-);
+    </Box>);
+};
 
 AssetPanel.propTypes = {
+    ariaLabel: PropTypes.string,
+    ariaRole: PropTypes.string,
     ...Selector.propTypes
 };
 

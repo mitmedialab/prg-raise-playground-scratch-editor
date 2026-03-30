@@ -5,7 +5,7 @@ const Skin = require('./Skin');
 class BitmapSkin extends Skin {
     /**
      * Create a new Bitmap Skin.
-     * @extends Skin
+     * @augments Skin
      * @param {!int} id - The ID for this Skin.
      * @param {!RenderWebGL} renderer - The renderer which will use this skin.
      */
@@ -34,7 +34,7 @@ class BitmapSkin extends Skin {
     }
 
     /**
-     * @return {Array<number>} the "native" size, in texels, of this skin.
+     * @returns {Array<number>} the "native" size, in texels, of this skin.
      */
     get size () {
         return [this._textureSize[0] / this._costumeResolution, this._textureSize[1] / this._costumeResolution];
@@ -42,7 +42,7 @@ class BitmapSkin extends Skin {
 
     /**
      * @param {Array<number>} scale - The scaling factors to be used.
-     * @return {WebGLTexture} The GL texture representation of this skin when drawing at the given scale.
+     * @returns {WebGLTexture} The GL texture representation of this skin when drawing at the given scale.
      */
     // eslint-disable-next-line no-unused-vars
     getTexture (scale) {
@@ -52,7 +52,7 @@ class BitmapSkin extends Skin {
     /**
      * Set the contents of this skin to a snapshot of the provided bitmap data.
      * @param {ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement} bitmapData - new contents for this skin.
-     * @param {int} [costumeResolution=1] - The resolution to use for this bitmap.
+     * @param {int} [costumeResolution] - The resolution to use for this bitmap.
      * @param {Array<number>} [rotationCenter] - Optional rotation center for the bitmap. If not supplied, it will be
      * calculated from the bounding box
      * @fires Skin.event:WasAltered
@@ -69,9 +69,10 @@ class BitmapSkin extends Skin {
         // memory.
         let textureData = bitmapData;
         if (bitmapData instanceof HTMLCanvasElement) {
-            // Given a HTMLCanvasElement get the image data to pass to webgl and
-            // Silhouette.
-            const context = bitmapData.getContext('2d');
+            // Given a HTMLCanvasElement, get the image data to pass to WebGL and the Silhouette. The 2D context was
+            // likely already created, so `willReadFrequently` is likely ignored here, but it's good documentation and
+            // may help if the code path changes someday.
+            const context = bitmapData.getContext('2d', {willReadFrequently: true});
             textureData = context.getImageData(0, 0, bitmapData.width, bitmapData.height);
         }
 

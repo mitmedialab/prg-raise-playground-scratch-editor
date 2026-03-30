@@ -2,7 +2,7 @@ import bindAll from 'lodash.bindall';
 import PropTypes from 'prop-types';
 import React from 'react';
 import WavEncoder from 'wav-encoder';
-import VM from 'scratch-vm';
+import VM from '@scratch/scratch-vm';
 
 import {connect} from 'react-redux';
 
@@ -485,11 +485,11 @@ const mapStateToProps = (state, {soundIndex}) => {
     const sound = state.scratchGui.vm.editingTarget.sprite.sounds[index];
     const audioBuffer = state.scratchGui.vm.getSoundBuffer(index);
     return {
-        soundId: sound.soundId,
-        sampleRate: audioBuffer.sampleRate,
-        samples: audioBuffer.getChannelData(0),
+        soundId: sound?.soundId,
+        sampleRate: audioBuffer?.sampleRate,
+        samples: audioBuffer?.getChannelData(0),
         isFullScreen: state.scratchGui.mode.isFullScreen,
-        name: sound.name,
+        name: sound?.name,
         vm: state.scratchGui.vm
     };
 };

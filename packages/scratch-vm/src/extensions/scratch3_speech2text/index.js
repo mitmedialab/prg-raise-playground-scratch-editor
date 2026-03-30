@@ -10,7 +10,7 @@ const DiffMatchPatch = require('diff-match-patch');
  * Url of icon to be displayed at the left edge of each extension block.
  * @type {string}
  */
-// eslint-disable-next-line max-len
+// eslint-disable-next-line @stylistic/max-len
 const iconURI = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjRkZGRkZGIj48cGF0aCBkPSJNMTIgMTRjMS42NiAwIDIuOTktMS4zNCAyLjk5LTNMMTUgNWMwLTEuNjYtMS4zNC0zLTMtM1M5IDMuMzQgOSA1djZjMCAxLjY2IDEuMzQgMyAzIDN6bTUuMy0zYzAgMy0yLjU0IDUuMS01LjMgNS4xUzYuNyAxNCA2LjcgMTFINWMwIDMuNDEgMi43MiA2LjIzIDYgNi43MlYyMWgydi0zLjI4YzMuMjgtLjQ4IDYtMy4zIDYtNi43MmgtMS43eiIvPjxwYXRoIGQ9Ik0wIDBoMjR2MjRIMHoiIGZpbGw9Im5vbmUiLz48L3N2Zz4K';
 
 
@@ -18,7 +18,7 @@ const iconURI = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vc
  * Url of icon to be displayed in the toolbox menu for the extension category.
  * @type {string}
  */
-// eslint-disable-next-line max-len
+// eslint-disable-next-line @stylistic/max-len
 const menuIconURI = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNHB4IiBoZWlnaHQ9IjI0cHgiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzc1NzU3NSI+CiAgICA8cGF0aCBkPSJNMTIgMTRjMS42NiAwIDIuOTktMS4zNCAyLjk5LTNMMTUgNWMwLTEuNjYtMS4zNC0zLTMtM1M5IDMuMzQgOSA1djZjMCAxLjY2IDEuMzQgMyAzIDN6bTUuMy0zYzAgMy0yLjU0IDUuMS01LjMgNS4xUzYuNyAxNCA2LjcgMTFINWMwIDMuNDEgMi43MiA2LjIzIDYgNi43MlYyMWgydi0zLjI4YzMuMjgtLjQ4IDYtMy4zIDYtNi43MmgtMS43eiIvPgogICAgPHBhdGggZD0iTTAgMGgyNHYyNEgweiIgZmlsbD0ibm9uZSIvPgo8L3N2Zz4K';
 
 
@@ -66,7 +66,7 @@ class Scratch3Speech2TextBlocks {
         /**
          * The most recent transcription result received from the speech API that we decided to keep.
          * This is the value returned by the reporter block.
-         * @type {String}
+         * @type {string}
          * @private
          */
         this._currentUtterance = '';
@@ -201,7 +201,7 @@ class Scratch3Speech2TextBlocks {
 
     /**
      * Get the viewer's language code.
-     * @return {string} the language code.
+     * @returns {string} the language code.
      */
     _getViewerLanguageCode () {
         return formatMessage.setup().locale || navigator.language || navigator.userLanguage || 'en-US';
@@ -495,7 +495,6 @@ class Scratch3Speech2TextBlocks {
     /**
      * Sets up the script processor and the web socket.
      * @private
-     *
      */
     _initScriptNode () {
         // Create a node that sends raw bytes across the websocket
@@ -624,7 +623,7 @@ class Scratch3Speech2TextBlocks {
                     text: formatMessage({
                         id: 'speech.listenAndWait',
                         default: 'listen and wait',
-                        // eslint-disable-next-line max-len
+                        // eslint-disable-next-line @stylistic/max-len
                         description: 'Start listening to the microphone and wait for a result from the speech recognition system.'
                     }),
                     blockType: BlockType.COMMAND
@@ -634,7 +633,7 @@ class Scratch3Speech2TextBlocks {
                     text: formatMessage({
                         id: 'speech.whenIHear',
                         default: 'when I hear [PHRASE]',
-                        // eslint-disable-next-line max-len
+                        // eslint-disable-next-line @stylistic/max-len
                         description: 'Event that triggers when the text entered on the block is recognized by the speech recognition system.'
                     }),
                     blockType: BlockType.HAT,
@@ -664,7 +663,7 @@ class Scratch3Speech2TextBlocks {
 
     /**
      * Start the listening process if it isn't already in progress.
-     * @return {Promise} A promise that will resolve when listening is complete.
+     * @returns {Promise} A promise that will resolve when listening is complete.
      */
     listenAndWait () {
         this._phraseList = this._scanBlocksForPhraseList();
@@ -683,7 +682,7 @@ class Scratch3Speech2TextBlocks {
     /**
      * An edge triggered hat block to listen for a specific phrase.
      * @param {object} args - the block arguments.
-     * @return {boolean} true if the phrase matches what was transcribed.
+     * @returns {boolean} true if the phrase matches what was transcribed.
      */
     whenIHearHat (args) {
         return this._speechMatches(args.PHRASE, this._utteranceForEdgeTrigger);
@@ -691,7 +690,7 @@ class Scratch3Speech2TextBlocks {
 
     /**
      * Reporter for the last heard phrase/utterance.
-     * @return {string} The lastest thing we heard from a listen and wait block.
+     * @returns {string} The lastest thing we heard from a listen and wait block.
      */
     getSpeech () {
         return this._currentUtterance;

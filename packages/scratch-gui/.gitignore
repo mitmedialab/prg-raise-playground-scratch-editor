@@ -10,6 +10,7 @@ npm-*
 # Testing
 /.nyc_output
 /coverage
+/test-results
 
 # Build
 /build

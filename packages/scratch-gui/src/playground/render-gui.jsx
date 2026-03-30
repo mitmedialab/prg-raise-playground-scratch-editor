@@ -1,11 +1,12 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDomClient from 'react-dom/client';
 import {compose} from 'redux';
 
 import AppStateHOC from '../lib/app-state-hoc.jsx';
 import GUI from '../containers/gui.jsx';
 import HashParserHOC from '../lib/hash-parser-hoc.jsx';
 import log from '../lib/log.js';
+import {PLATFORM} from '../lib/platform.js';
 
 const onClickLogo = () => {
     window.location = 'https://raise.mit.edu';
@@ -61,12 +62,14 @@ export default appTarget => {
         window.onbeforeunload = () => true;
     }
 
-    ReactDOM.render(
+    const root = ReactDomClient.createRoot(appTarget);
+
+    root.render(
         // important: this is checking whether `simulateScratchDesktop` is truthy, not just defined!
         simulateScratchDesktop ?
             <WrappedGui
                 canEditTitle
-                isScratchDesktop
+                platform={PLATFORM.DESKTOP}
                 showTelemetryModal
                 canSave={false}
                 onTelemetryModalCancel={handleTelemetryModalCancel}
@@ -80,6 +83,6 @@ export default appTarget => {
                 backpackHost={backpackHost}
                 canSave={false}
                 onClickLogo={onClickLogo}
-            />,
-        appTarget);
+            />
+    );
 };

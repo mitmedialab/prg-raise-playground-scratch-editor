@@ -1,5 +1,5 @@
 /**
- * @fileoverview
+ * @file
  * An SB3 serializer and deserializer. Parses provided
  * JSON and then generates all needed scratch-vm runtime structures.
  */
@@ -98,7 +98,7 @@ const primitiveOpcodeInfoMap = {
 /**
  * Serializes primitives described above into a more compact format
  * @param {object} block the block to serialize
- * @return {array} An array representing the information in the block,
+ * @returns {Array} An array representing the information in the block,
  * or null if the given block is not one of the primitives described above.
  */
 const serializePrimitiveBlock = function (block) {
@@ -130,9 +130,8 @@ const serializePrimitiveBlock = function (block) {
  * inputs of this block (e.g. if there is an unobscured shadow, an obscured shadow
  * -- a block plugged into a droppable input -- or, if there is just a block).
  * Based on this relationship, serializes the ids of the block and shadow (if present)
- *
  * @param {object} inputs The inputs to serialize
- * @return {object} An object representing the serialized inputs
+ * @returns {object} An object representing the serialized inputs
  */
 const serializeInputs = function (inputs) {
     const obj = Object.create(null);
@@ -166,7 +165,7 @@ const serializeInputs = function (inputs) {
 /**
  * Serialize the fields of a block in a more compact form.
  * @param {object} fields The fields object to serialize
- * @return {object} An object representing the serialized fields
+ * @returns {object} An object representing the serialized fields
  */
 const serializeFields = function (fields) {
     const obj = Object.create(null);
@@ -184,7 +183,7 @@ const serializeFields = function (fields) {
  * Serialize the given block in the SB3 format with some compression of inputs,
  * fields, and primitives.
  * @param {object} block The block to serialize
- * @return {object | array} A serialized representation of the block. This is an
+ * @returns {object | Array} A serialized representation of the block. This is an
  * array if the block is one of the primitive types described above or an object,
  * if not.
  */
@@ -244,7 +243,7 @@ const serializeBlock = function (block) {
  * Note: this function modifies the given blocks object in place
  * @param {object} block The block with inputs to compress
  * @param {objec} blocks The object containing all the blocks currently getting serialized
- * @return {object} The serialized block with compressed inputs
+ * @returns {object} The serialized block with compressed inputs
  */
 const compressInputTree = function (block, blocks) {
     // This is the second pass on the block
@@ -277,7 +276,7 @@ const compressInputTree = function (block, blocks) {
  * Note that this should never return a URL. If in the future the SB3 loader supports loading extensions by URL, this
  * ID should be used to (for example) look up the extension's full URL from a table in the SB3's JSON.
  * @param {!string} opcode The opcode to examine for extension.
- * @return {?string} The extension ID, if it exists and is not a core extension.
+ * @returns {?string} The extension ID, if it exists and is not a core extension.
  */
 const getExtensionIdForOpcode = function (opcode) {
     // Allowed ID characters are those matching the regular expression [\w-]: A-Z, a-z, 0-9, and hyphen ("-").
@@ -293,7 +292,7 @@ const getExtensionIdForOpcode = function (opcode) {
  * Serialize the given blocks object (representing all the blocks for the target
  * currently being serialized.)
  * @param {object} blocks The blocks to be serialized
- * @return {Array} An array of the serialized blocks with compressed inputs and
+ * @returns {Array} An array of the serialized blocks with compressed inputs and
  * compressed primitives and the list of all extension IDs present
  * in the serialized blocks.
  */
@@ -341,7 +340,7 @@ const serializeBlocks = function (blocks) {
 /**
  * Serialize the given costume.
  * @param {object} costume The costume to be serialized.
- * @return {object} A serialized representation of the costume.
+ * @returns {object} A serialized representation of the costume.
  */
 const serializeCostume = function (costume) {
     const obj = Object.create(null);
@@ -370,7 +369,7 @@ const serializeCostume = function (costume) {
 /**
  * Serialize the given sound.
  * @param {object} sound The sound to be serialized.
- * @return {object} A serialized representation of the sound.
+ * @returns {object} A serialized representation of the sound.
  */
 const serializeSound = function (sound) {
     const obj = Object.create(null);
@@ -395,7 +394,7 @@ const serializeSound = function (sound) {
 /**
  * Serialize the given variables object.
  * @param {object} variables The variables to be serialized.
- * @return {object} A serialized representation of the variables. They get
+ * @returns {object} A serialized representation of the variables. They get
  * separated by type to compress the representation of each given variable and
  * reduce duplicate information.
  */
@@ -450,7 +449,7 @@ const serializeComments = function (comments) {
  * for saving and loading this target.
  * @param {object} target The target to be serialized.
  * @param {Set} extensions A set of extensions to add extension IDs to
- * @return {object} A serialized representation of the given target.
+ * @returns {object} A serialized representation of the given target.
  */
 const serializeTarget = function (target, extensions) {
     const obj = Object.create(null);
@@ -611,11 +610,11 @@ const serialize = function (runtime, targetId, /* PRG ADDITION BEGIN */ extensio
  * Deserialize a block input descriptors. This is either a
  * block id or a serialized primitive, e.g. an array
  * (see serializePrimitiveBlock function).
- * @param {string | array} inputDescOrId The block input descriptor to be serialized.
+ * @param {string | Array} inputDescOrId The block input descriptor to be serialized.
  * @param {string} parentId The id of the parent block for this input block.
  * @param {boolean} isShadow Whether or not this input block is a shadow.
  * @param {object} blocks The entire blocks object currently in the process of getting serialized.
- * @return {object} The deserialized input descriptor.
+ * @returns {object} The deserialized input descriptor.
  */
 const deserializeInputDesc = function (inputDescOrId, parentId, isShadow, blocks) {
     if (!Array.isArray(inputDescOrId)) return inputDescOrId;
@@ -767,7 +766,7 @@ const deserializeInputDesc = function (inputDescOrId, parentId, isShadow, blocks
  * @param {string} parentId The block id of the parent block
  * @param {object} blocks The object representing the entire set of blocks currently
  * in the process of getting deserialized.
- * @return {object} The deserialized and uncompressed inputs.
+ * @returns {object} The deserialized and uncompressed inputs.
  */
 const deserializeInputs = function (inputs, parentId, blocks) {
     // Explicitly not using Object.create(null) here
@@ -802,7 +801,7 @@ const deserializeInputs = function (inputs, parentId, blocks) {
 /**
  * Deserialize the given block fields.
  * @param {object} fields The fields to be deserialized
- * @return {object} The deserialized and uncompressed block fields.
+ * @returns {object} The deserialized and uncompressed block fields.
  */
 const deserializeFields = function (fields) {
     // Explicitly not using Object.create(null) here
@@ -836,9 +835,8 @@ const deserializeFields = function (fields) {
  * Should be able to deserialize a format that has already been deserialized.  The only
  * "east" path to adding new targets/code requires going through deserialize, so it should
  * work with pre-parsed deserialized blocks.
- *
  * @param {object} blocks Serialized SB3 "blocks" property of a target. Will be mutated.
- * @return {object} input is modified and returned
+ * @returns {object} input is modified and returned
  */
 const deserializeBlocks = function (blocks) {
     for (const blockId in blocks) {
@@ -857,7 +855,45 @@ const deserializeBlocks = function (blocks) {
         block.id = blockId; // add id back to block since it wasn't serialized
         block.inputs = deserializeInputs(block.inputs, blockId, blocks);
         block.fields = deserializeFields(block.fields);
+
+        if (block.comment) {
+            // Pre-Blockly v12 Scratch used arbitrary IDs for block comments.
+            // Newer versions use an ID based on the parent block's ID instead,
+            // so disregard the actual saved value and replace it with the
+            // synthesized one.
+            block.comment = `${block.id}_comment`;
+        }
     }
+    // Second pass: strip argument reporter children from procedures_prototype blocks.
+    // These blocks are managed by Blockly's `domToMutation` and should not be loaded
+    // from the SB3 JSON, as loading them would cause duplicates when Blockly's
+    // `domToMutation` creates them again during workspace initialization.
+    // Also set `shadow: false` for old-format prototypes (which were saved as shadow blocks).
+    for (const blockId in blocks) {
+        if (!Object.prototype.hasOwnProperty.call(blocks, blockId)) continue;
+        const block = blocks[blockId];
+        if (Array.isArray(block)) continue;
+        if (block.opcode !== 'procedures_prototype') continue;
+
+        // Convert from shadow (old format) to non-shadow, and clear the stale
+        // shadow reference in the parent definition block's custom_block input.
+        block.shadow = false;
+        const parentBlock = blocks[block.parent];
+        if (parentBlock && parentBlock.inputs && parentBlock.inputs.custom_block) {
+            parentBlock.inputs.custom_block.shadow = null;
+        }
+
+        // Delete the argument reporter children from the blocks map.
+        // They will be recreated by Blockly's domToMutation.
+        for (const inputName in block.inputs) {
+            if (!Object.prototype.hasOwnProperty.call(block.inputs, inputName)) continue;
+            const inputInfo = block.inputs[inputName];
+            if (inputInfo.block) delete blocks[inputInfo.block];
+            if (inputInfo.shadow && inputInfo.shadow !== inputInfo.block) delete blocks[inputInfo.shadow];
+        }
+        block.inputs = {};
+    }
+
     return blocks;
 };
 
@@ -870,7 +906,7 @@ const deserializeBlocks = function (blocks) {
  * @param {!object} object From-JSON "Scratch object:" sprite, stage, watcher.
  * @param {!Runtime} runtime Runtime object to load all structures into.
  * @param {JSZip} zip Sb3 file describing this project (to load assets from)
- * @return {?{costumePromises:Array.<Promise>,soundPromises:Array.<Promise>,soundBank:SoundBank}}
+ * @returns {?{costumePromises:Array.<Promise>,soundPromises:Array.<Promise>,soundBank:SoundBank}}
  * Object of arrays of promises for asset objects used in Sprites. As well as a
  * SoundBank for the sound assets. null for unsupported objects.
  */
@@ -956,7 +992,7 @@ const parseScratchAssets = function (object, runtime, zip) {
  * @param {JSZip} zip Sb3 file describing this project (to load assets from)
  * @param {object} assets - Promises for assets of this scratch object grouped
  *   into costumes and sounds
- * @return {!Promise.<Target>} Promise for the target created (stage or sprite), or null for unsupported objects.
+ * @returns {!Promise.<Target>} Promise for the target created (stage or sprite), or null for unsupported objects.
  */
 const parseScratchObject = function (object, runtime, extensions, zip, assets) {
     if (!Object.prototype.hasOwnProperty.call(object, 'name')) {
@@ -1062,7 +1098,7 @@ const parseScratchObject = function (object, runtime, extensions, zip, assets) {
         for (const commentId in object.comments) {
             const comment = object.comments[commentId];
             const newComment = new Comment(
-                commentId,
+                comment.blockId ? `${comment.blockId}_comment` : commentId,
                 comment.text,
                 comment.x,
                 comment.y,

@@ -3,7 +3,7 @@ import React from 'react';
 import {connect} from 'react-redux';
 import bindAll from 'lodash.bindall';
 
-import VM from 'scratch-vm';
+import VM from '@scratch/scratch-vm';
 import CloudProvider from '../lib/cloud-provider';
 
 import {
@@ -101,22 +101,30 @@ const cloudManagerHOC = function (WrappedComponent) {
         handleExtensionAdded (categoryInfo) {
             // Note that props.vm.extensionManager.isExtensionLoaded('videoSensing') is still false
             // at the point of this callback, so it is difficult to reuse the canModifyCloudData logic.
-            if (categoryInfo.id === 'videoSensing' && this.isConnected()) {
+            if (
+                (categoryInfo.id === 'videoSensing' ||
+                    categoryInfo.id === 'faceSensing') &&
+                this.isConnected()
+            ) {
                 this.disconnectFromCloud();
             }
         }
         render () {
             const {
-                /* eslint-disable no-unused-vars */
+                 
                 canModifyCloudData,
                 cloudHost,
                 projectId,
-                username,
                 hasCloudPermission,
                 isShowingWithId,
                 onShowCloudInfo,
-                /* eslint-enable no-unused-vars */
+                 
+
                 vm,
+
+                // Intentionally propagating this one since it's used in MenuBar
+                // username,
+
                 ...componentProps
             } = this.props;
             return (
@@ -153,9 +161,18 @@ const cloudManagerHOC = function (WrappedComponent) {
             isShowingWithId: getIsShowingWithId(loadingState),
             projectId: state.scratchGui.projectState.projectId,
             // if you're editing someone else's project, you can't modify cloud data
-            canModifyCloudData: (!state.scratchGui.mode.hasEverEnteredEditor || ownProps.canSave) &&
+            canModifyCloudData:
+                (!state.scratchGui.mode.hasEverEnteredEditor ||
+                    ownProps.canSave) &&
                 // possible security concern if the program attempts to encode webcam data over cloud variables
-                !ownProps.vm.extensionManager.isExtensionLoaded('videoSensing')
+                !(
+                    ownProps.vm.extensionManager.isExtensionLoaded(
+                        'videoSensing'
+                    ) ||
+                    ownProps.vm.extensionManager.isExtensionLoaded(
+                        'faceSensing'
+                    )
+                )
         };
     };
 

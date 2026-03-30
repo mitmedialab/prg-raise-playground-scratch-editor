@@ -1,14 +1,14 @@
 import bindAll from 'lodash.bindall';
 import PropTypes from 'prop-types';
 import React from 'react';
-import Renderer from 'scratch-render';
-import VM from 'scratch-vm';
+import Renderer from '@scratch/scratch-render';
+import VM from '@scratch/scratch-vm';
 import {connect} from 'react-redux';
 
 import {STAGE_DISPLAY_SIZES} from '../lib/layout-constants';
 import {getEventXY} from '../lib/touch-utils';
 import VideoProvider from '../lib/video/video-provider';
-import {BitmapAdapter as V2BitmapAdapter} from 'scratch-svg-renderer';
+import {BitmapAdapter as V2BitmapAdapter} from '@scratch/scratch-svg-renderer';
 
 import StageComponent from '../components/stage/stage.jsx';
 
@@ -340,15 +340,28 @@ class Stage extends React.Component {
     }
     onStartDrag (x, y) {
         if (this.state.dragId) return;
-        const drawableId = this.renderer.pick(x, y);
+        
+        // Targets with no attached drawable cannot be dragged.
+        let draggableTargets = this.props.vm.runtime.targets.filter(
+            target => Number.isFinite(target.drawableID)
+        );
+
+        // Because pick queries can be expensive, only perform them for drawables that are currently draggable.
+        // If we're in the editor, we can drag all targets. Otherwise, filter.
+        if (!this.props.useEditorDragStyle) {
+            draggableTargets = draggableTargets.filter(
+                target => target.draggable
+            );
+        }
+        if (draggableTargets.length === 0) return;
+
+        const draggableIDs = draggableTargets.map(target => target.drawableID);
+        const drawableId = this.renderer.pick(x, y, 1, 1, draggableIDs);
         if (drawableId === null) return;
         const targetId = this.props.vm.getTargetIdForDrawableId(drawableId);
         if (targetId === null) return;
 
         const target = this.props.vm.runtime.getTargetById(targetId);
-
-        // Do not start drag unless in editor drag mode or target is draggable
-        if (!(this.props.useEditorDragStyle || target.draggable)) return;
 
         // Dragging always brings the target to the front
         target.goToFront();
@@ -407,8 +420,8 @@ class Stage extends React.Component {
     }
     render () {
         const {
-            vm, // eslint-disable-line no-unused-vars
-            onActivateColorPicker, // eslint-disable-line no-unused-vars
+            vm,
+            onActivateColorPicker,
             ...props
         } = this.props;
         return (

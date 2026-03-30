@@ -1,8 +1,10 @@
 import bindAll from 'lodash.bindall';
+import defaultsDeep from 'lodash.defaultsdeep';
 import omit from 'lodash.omit';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {intlShape, injectIntl} from 'react-intl';
+import {injectIntl} from 'react-intl';
+import intlShape from '../lib/intlShape.js';
 
 import {connect} from 'react-redux';
 import {openBackdropLibrary} from '../reducers/modals';
@@ -21,6 +23,10 @@ import StageSelectorComponent from '../components/stage-selector/stage-selector.
 
 import backdropLibraryContent from '../lib/libraries/backdrops.json';
 import {handleFileUpload, costumeUpload} from '../lib/file-uploader.js';
+import {ModalFocusContext} from '../contexts/modal-focus-context.jsx';
+
+import {costumeShape as backdropShape} from '../lib/assets-prop-types.js';
+import mergeDynamicAssets from '../lib/merge-dynamic-assets.js';
 
 const dragTypes = [
     DragConstants.COSTUME,
@@ -40,6 +46,7 @@ class StageSelector extends React.Component {
         bindAll(this, [
             'handleClick',
             'handleNewBackdrop',
+            'handleNewBackdropClick',
             'handleSurpriseBackdrop',
             'handleEmptyBackdrop',
             'addBackdropFromLibraryItem',
@@ -50,14 +57,30 @@ class StageSelector extends React.Component {
             'handleTouchEnd',
             'handleDrop',
             'setFileInput',
-            'setRef'
+            'setRef',
+            'mergeDynamicAssets'
         ]);
+
+        this.processedBackdrops = {};
     }
     componentDidMount () {
         document.addEventListener('touchend', this.handleTouchEnd);
     }
     componentWillUnmount () {
         document.removeEventListener('touchend', this.handleTouchEnd);
+    }
+
+    static contextType = ModalFocusContext;
+
+    mergeDynamicAssets () {
+        if (this.processedBackdrops.source === this.props.dynamicBackdrops) {
+            return this.processedBackdrops.data;
+        }
+        this.processedBackdrops = mergeDynamicAssets(
+            backdropLibraryContent,
+            this.props.dynamicBackdrops
+        );
+        return this.processedBackdrops.data;
     }
     handleTouchEnd (e) {
         const {x, y} = getEventXY(e);
@@ -80,6 +103,13 @@ class StageSelector extends React.Component {
     handleClick () {
         this.props.onSelect(this.props.id);
     }
+    handleNewBackdropClick (e) {
+        e.stopPropagation();
+        this.context.captureFocus();
+        this.props.onNewBackdropClick(jsonStr => {
+            this.handleNewBackdrop(JSON.parse(jsonStr), false);
+        });
+    }
     handleNewBackdrop (backdrops_, shouldActivateTab = true) {
         const backdrops = Array.isArray(backdrops_) ? backdrops_ : [backdrops_];
         return Promise.all(backdrops.map(backdrop =>
@@ -93,7 +123,9 @@ class StageSelector extends React.Component {
     handleSurpriseBackdrop (e) {
         e.stopPropagation(); // Prevent click from falling through to selecting stage.
         // @todo should this not add a backdrop you already have?
-        const item = backdropLibraryContent[Math.floor(Math.random() * backdropLibraryContent.length)];
+        const backdrops = this.mergeDynamicAssets();
+        
+        const item = backdrops[Math.floor(Math.random() * backdrops.length)];
         this.addBackdropFromLibraryItem(item, false);
     }
     handleEmptyBackdrop (e) {
@@ -158,7 +190,7 @@ class StageSelector extends React.Component {
     }
     render () {
         const componentProps = omit(this.props, [
-            'asset', 'dispatchSetHoveredSprite', 'id', 'intl',
+            'asset', 'dispatchSetHoveredSprite', 'id', 'intl', 'onNewBackdropClick',
             'onActivateTab', 'onSelect', 'onShowImporting', 'onCloseImporting']);
         return (
             <DroppableThrottledStage
@@ -172,6 +204,7 @@ class StageSelector extends React.Component {
                 onMouseEnter={this.handleMouseEnter}
                 onMouseLeave={this.handleMouseLeave}
                 onSurpriseBackdropClick={this.handleSurpriseBackdrop}
+                onNewBackdropClick={this.handleNewBackdropClick}
                 {...componentProps}
             />
         );
@@ -183,7 +216,8 @@ StageSelector.propTypes = {
     intl: intlShape.isRequired,
     onCloseImporting: PropTypes.func,
     onSelect: PropTypes.func,
-    onShowImporting: PropTypes.func
+    onShowImporting: PropTypes.func,
+    dynamicBackdrops: PropTypes.arrayOf(backdropShape)
 };
 
 const mapStateToProps = (state, {asset, id}) => ({
@@ -191,12 +225,12 @@ const mapStateToProps = (state, {asset, id}) => ({
     vm: state.scratchGui.vm,
     receivedBlocks: state.scratchGui.hoveredTarget.receivedBlocks &&
             state.scratchGui.hoveredTarget.sprite === id,
-    raised: state.scratchGui.blockDrag
+    raised: state.scratchGui.blockDrag,
+    dynamicBackdrops: state.scratchGui.dynamicAssets.backdrops
 });
 
 const mapDispatchToProps = dispatch => ({
-    onNewBackdropClick: e => {
-        e.stopPropagation();
+    onNewBackdropClick: () => {
         dispatch(openBackdropLibrary());
     },
     onActivateTab: tabIndex => {
@@ -209,7 +243,12 @@ const mapDispatchToProps = dispatch => ({
     onShowImporting: () => dispatch(showStandardAlert('importingAsset'))
 });
 
+const mergeProps = (stateProps, dispatchProps, ownProps) => defaultsDeep(
+    {}, ownProps, stateProps, dispatchProps
+);
+
 export default injectIntl(connect(
     mapStateToProps,
-    mapDispatchToProps
+    mapDispatchToProps,
+    mergeProps
 )(StageSelector));

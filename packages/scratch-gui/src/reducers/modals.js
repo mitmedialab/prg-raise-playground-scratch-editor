@@ -4,6 +4,7 @@ const OPEN_MODAL_WITH_ID = 'scratch-gui/modals/OPEN_MODAL_WITH_ID';
 
 const MODAL_BACKDROP_LIBRARY = 'backdropLibrary';
 const MODAL_COSTUME_LIBRARY = 'costumeLibrary';
+const MODAL_DEBUG = 'debugModal';
 const MODAL_EXTENSION_LIBRARY = 'extensionLibrary';
 const MODAL_LOADING_PROJECT = 'loadingProject';
 const MODAL_TELEMETRY = 'telemetryModal';
@@ -19,6 +20,7 @@ const MODAL_PROGRAMMATIC = 'programmaticModal';
 const initialState = {
     [MODAL_BACKDROP_LIBRARY]: false,
     [MODAL_COSTUME_LIBRARY]: false,
+    [MODAL_DEBUG]: false,
     [MODAL_EXTENSION_LIBRARY]: false,
     [MODAL_LOADING_PROJECT]: false,
     [MODAL_TELEMETRY]: false,
@@ -70,6 +72,9 @@ const openBackdropLibrary = function () {
 const openCostumeLibrary = function () {
     return openModal(MODAL_COSTUME_LIBRARY);
 };
+const openDebugModal = function () {
+    return openModal(MODAL_DEBUG);
+};
 const openExtensionLibrary = function () {
     return openModal(MODAL_EXTENSION_LIBRARY);
 };
@@ -113,6 +118,9 @@ const closeBackdropLibrary = function () {
 const closeCostumeLibrary = function () {
     return closeModal(MODAL_COSTUME_LIBRARY);
 };
+const closeDebugModal = function () {
+    return closeModal(MODAL_DEBUG);
+};
 const closeExtensionLibrary = function () {
     return closeModal(MODAL_EXTENSION_LIBRARY);
 };
@@ -151,6 +159,7 @@ export {
     initialState as modalsInitialState,
     openBackdropLibrary,
     openCostumeLibrary,
+    openDebugModal,
     openExtensionLibrary,
     openLoadingProject,
     openSoundLibrary,
@@ -164,6 +173,7 @@ export {
     openProgrammaticModal,
     closeBackdropLibrary,
     closeCostumeLibrary,
+    closeDebugModal,
     closeExtensionLibrary,
     closeLoadingProject,
     closeSpriteLibrary,

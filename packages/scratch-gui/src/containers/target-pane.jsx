@@ -2,7 +2,8 @@ import bindAll from 'lodash.bindall';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {intlShape, injectIntl} from 'react-intl';
+import {injectIntl} from 'react-intl';
+import intlShape from '../lib/intlShape.js';
 
 import {
     openSpriteLibrary,
@@ -23,6 +24,9 @@ import {highlightTarget} from '../reducers/targets';
 import {fetchSprite, fetchCode} from '../lib/backpack-api';
 import randomizeSpritePosition from '../lib/randomize-sprite-position';
 import downloadBlob from '../lib/download-blob';
+import {ModalFocusContext} from '../contexts/modal-focus-context.jsx';
+import {spriteShape} from '../lib/assets-prop-types.js';
+import mergeDynamicAssets from '../lib/merge-dynamic-assets.js';
 
 class TargetPane extends React.Component {
     constructor (props) {
@@ -42,19 +46,36 @@ class TargetPane extends React.Component {
             'handleDuplicateSprite',
             'handleExportSprite',
             'handleNewSprite',
+            'handleNewSpriteClick',
             'handleSelectSprite',
             'handleSurpriseSpriteClick',
             'handlePaintSpriteClick',
             'handleFileUploadClick',
             'handleSpriteUpload',
-            'setFileInput'
+            'setFileInput',
+            'mergeDynamicAssets'
         ]);
+
+        this.processedSprites = {};
     }
     componentDidMount () {
         this.props.vm.addListener('BLOCK_DRAG_END', this.handleBlockDragEnd);
     }
     componentWillUnmount () {
         this.props.vm.removeListener('BLOCK_DRAG_END', this.handleBlockDragEnd);
+    }
+
+    static contextType = ModalFocusContext;
+
+    mergeDynamicAssets () {
+        if (this.processedSprites.source === this.props.dynamicSprites) {
+            return this.processedSprites.data;
+        }
+        this.processedSprites = mergeDynamicAssets(
+            spriteLibraryContent,
+            this.props.dynamicSprites
+        );
+        return this.processedSprites.data;
     }
     handleChangeSpriteDirection (direction) {
         this.props.vm.postSpriteInfo({direction});
@@ -106,7 +127,9 @@ class TargetPane extends React.Component {
         }
     }
     handleSurpriseSpriteClick () {
-        const surpriseSprites = spriteLibraryContent.filter(sprite =>
+        const sprites = this.mergeDynamicAssets();
+
+        const surpriseSprites = sprites.filter(sprite =>
             (sprite.tags.indexOf('letters') === -1) && (sprite.tags.indexOf('numbers') === -1)
         );
         const item = surpriseSprites[Math.floor(Math.random() * surpriseSprites.length)];
@@ -129,6 +152,11 @@ class TargetPane extends React.Component {
     }
     handleActivateBlocksTab () {
         this.props.onActivateTab(BLOCKS_TAB_INDEX);
+    }
+    handleNewSpriteClick (e) {
+        e.preventDefault();
+        this.context.captureFocus();
+        this.props.onNewSpriteClick(this.handleNewSprite);
     }
     handleNewSprite (spriteJSONString) {
         return this.props.vm.addSprite(spriteJSONString)
@@ -234,19 +262,20 @@ class TargetPane extends React.Component {
         }
     }
     render () {
-        /* eslint-disable no-unused-vars */
+         
         const {
             dispatchUpdateRestore,
             isRtl,
             onActivateTab,
             onCloseImporting,
             onHighlightTarget,
+            onNewSpriteClick,
             onReceivedBlocks,
             onShowImporting,
             workspaceMetrics,
             ...componentProps
         } = this.props;
-        /* eslint-enable no-unused-vars */
+         
         return (
             <TargetPaneComponent
                 {...componentProps}
@@ -268,14 +297,15 @@ class TargetPane extends React.Component {
                 onSelectSprite={this.handleSelectSprite}
                 onSpriteUpload={this.handleSpriteUpload}
                 onSurpriseSpriteClick={this.handleSurpriseSpriteClick}
+                onNewSpriteClick={this.handleNewSpriteClick}
             />
         );
     }
 }
 
 const {
-    onSelectSprite, // eslint-disable-line no-unused-vars
-    onActivateBlocksTab, // eslint-disable-line no-unused-vars
+    onSelectSprite,
+    onActivateBlocksTab,
     ...targetPaneProps
 } = TargetPaneComponent.propTypes;
 
@@ -283,6 +313,7 @@ TargetPane.propTypes = {
     intl: intlShape.isRequired,
     onCloseImporting: PropTypes.func,
     onShowImporting: PropTypes.func,
+    dynamicSprites: PropTypes.arrayOf(spriteShape),
     ...targetPaneProps
 };
 
@@ -294,12 +325,12 @@ const mapStateToProps = state => ({
     sprites: state.scratchGui.targets.sprites,
     stage: state.scratchGui.targets.stage,
     raiseSprites: state.scratchGui.blockDrag,
-    workspaceMetrics: state.scratchGui.workspaceMetrics
+    workspaceMetrics: state.scratchGui.workspaceMetrics,
+    dynamicSprites: state.scratchGui.dynamicAssets.sprites
 });
 
 const mapDispatchToProps = dispatch => ({
-    onNewSpriteClick: e => {
-        e.preventDefault();
+    onNewSpriteClick: () => {
         dispatch(openSpriteLibrary());
     },
     onRequestCloseSpriteLibrary: () => {
@@ -321,7 +352,15 @@ const mapDispatchToProps = dispatch => ({
     onShowImporting: () => dispatch(showStandardAlert('importingAsset'))
 });
 
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+    ...ownProps,
+    ...stateProps,
+    ...dispatchProps,
+    onNewSpriteClick: ownProps.onNewSpriteClick || dispatchProps.onNewSpriteClick
+});
+
 export default injectIntl(connect(
     mapStateToProps,
-    mapDispatchToProps
+    mapDispatchToProps,
+    mergeProps
 )(TargetPane));

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {connect} from 'react-redux';
 
-import VM from 'scratch-vm';
+import VM from '@scratch/scratch-vm';
 import AudioEngine from 'scratch-audio';
 
 import {setProjectUnchanged} from '../reducers/project-changed';
@@ -82,7 +82,7 @@ const vmManagerHOC = function (WrappedComponent) {
         }
         render () {
             const {
-                /* eslint-disable no-unused-vars */
+                 
                 fontsLoaded,
                 loadingState,
                 locale,
@@ -92,7 +92,7 @@ const vmManagerHOC = function (WrappedComponent) {
                 onLoadedProject: onLoadedProjectProp,
                 onSetProjectUnchanged,
                 projectData,
-                /* eslint-enable no-unused-vars */
+                 
                 isLoadingWithId: isLoadingWithIdProp,
                 vm,
                 ...componentProps

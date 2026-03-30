@@ -21,10 +21,6 @@ const nodeBuilder = new ScratchWebpackConfigBuilder(common)
                 name: 'VirtualMachine'
             }
         }
-    })
-    .addModuleRule({
-        test: /\.mp3$/,
-        type: 'asset'
     });
 
 const webBuilder = new ScratchWebpackConfigBuilder(common)
@@ -45,10 +41,6 @@ const webBuilder = new ScratchWebpackConfigBuilder(common)
         }
     })
     .addModuleRule({
-        test: /\.mp3$/,
-        type: 'asset'
-    })
-    .addModuleRule({
         test: require.resolve('./src/index.js'),
         loader: 'expose-loader',
         options: {
@@ -59,7 +51,8 @@ const webBuilder = new ScratchWebpackConfigBuilder(common)
         Buffer: ['buffer', 'Buffer']
     }));
 
-const playgroundBuilder = webBuilder.clone()
+const playgroundBuilder = webBuilder
+    .clone()
     .merge({
         devServer: {
             contentBase: false,
@@ -71,8 +64,12 @@ const playgroundBuilder = webBuilder.clone()
         },
         entry: {
             'benchmark': './src/playground/benchmark',
-            'video-sensing-extension-debug': './src/extensions/scratch3_video_sensing/debug',
-            'extension-worker': path.join(__dirname, 'src/extension-support/extension-worker.js')
+            'video-sensing-extension-debug':
+                './src/extensions/scratch3_video_sensing/debug',
+            'extension-worker': path.join(
+                __dirname,
+                'src/extension-support/extension-worker.js'
+            )
         },
         output: {
             path: path.resolve(__dirname, 'playground'),
@@ -86,14 +83,16 @@ const playgroundBuilder = webBuilder.clone()
         loader: 'script-loader'
     })
     .addModuleRule({
-        test: require.resolve('./src/extensions/scratch3_video_sensing/debug.js'),
+        test: require.resolve(
+            './src/extensions/scratch3_video_sensing/debug.js'
+        ),
         loader: 'expose-loader',
         options: {
             exposes: 'Scratch3VideoSensingDebug'
         }
     })
     .addModuleRule({
-        test: require.resolve('scratch-blocks/dist/vertical.js'),
+        test: require.resolve('scratch-blocks'),
         loader: 'expose-loader',
         options: {
             exposes: 'Blockly'
@@ -107,40 +106,44 @@ const playgroundBuilder = webBuilder.clone()
         }
     })
     .addModuleRule({
-        test: require.resolve('scratch-storage/src/index.js'),
+        test: require.resolve('scratch-storage'),
         loader: 'expose-loader',
         options: {
-            exposes: 'ScratchStorage'
+            exposes: 'ScratchStorage ScratchStorage'
         }
     })
     .addModuleRule({
-        test: require.resolve('scratch-render/src/index.js'),
+        test: require.resolve('@scratch/scratch-render'),
         loader: 'expose-loader',
         options: {
             exposes: 'ScratchRender'
         }
     })
-    .addPlugin(new CopyWebpackPlugin([
-        {
-            from: 'node_modules/scratch-blocks/media',
-            to: 'media'
-        },
-        {
-            from: 'node_modules/scratch-storage/dist/web'
-        },
-        {
-            from: 'node_modules/scratch-render/dist/web'
-        },
-        {
-            from: 'node_modules/scratch-svg-renderer/dist/web'
-        },
-        {
-            from: 'src/playground'
-        }
-    ]));
+    .addPlugin(
+        new CopyWebpackPlugin({
+            patterns: [
+                {
+                    from: '../../node_modules/scratch-blocks/media',
+                    to: 'media'
+                },
+                {
+                    from: '../../node_modules/scratch-storage/dist/web'
+                },
+                {
+                    from: '../../node_modules/@scratch/scratch-render/dist/web'
+                },
+                {
+                    from: '../../node_modules/@scratch/scratch-svg-renderer/dist/web'
+                },
+                {
+                    from: 'src/playground'
+                }
+            ]
+        })
+    );
 
 module.exports = [
+    playgroundBuilder.get(), // webpack-dev-server only looks at the first configuration
     nodeBuilder.get(),
-    webBuilder.get(),
-    playgroundBuilder.get()
+    webBuilder.get()
 ];
