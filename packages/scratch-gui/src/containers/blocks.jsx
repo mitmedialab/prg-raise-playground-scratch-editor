@@ -145,7 +145,7 @@ class Blocks extends React.Component {
         addFunctionListener(this.workspace, 'translate', this.onWorkspaceMetricsChange);
         addFunctionListener(this.workspace, 'zoom', this.onWorkspaceMetricsChange);
 
-        this.workspace.getToolbox().selectItemByPosition(0);
+        //this.workspace.getToolbox().selectItemByPosition(0);
 
         this.attachVM();
         // Only update blocks/vm locale when visible to avoid sizing issues
