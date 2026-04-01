@@ -174,6 +174,9 @@ class VirtualMachine extends EventEmitter {
         this.flyoutBlockListener = this.flyoutBlockListener.bind(this);
         this.monitorBlockListener = this.monitorBlockListener.bind(this);
         this.variableListener = this.variableListener.bind(this);
+        /** BEGIN PRG Additions */
+        requestAnimationFrame(() => this.extensionManager.loadExtensionURL("doodlebot"));
+        /** END PRG Additions */
     }
 
     /**

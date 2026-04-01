@@ -24,7 +24,11 @@ const isUndefined = a => typeof a === 'undefined';
 export default function ({id, spriteName, opcode, params, value, vm}) {
     // Extension monitors get their labels from the Runtime through `getLabelForOpcode`.
     // Other monitors' labels are hard-coded in `OpcodeLabels`.
-    let {label, category, labelFn} = (vm && vm.runtime.getLabelForOpcode(opcode)) || OpcodeLabels.getLabel(opcode);
+
+    /** BEGIN PRG Additions */
+    // let {label, category, labelFn} = (vm && vm.runtime.getLabelForOpcode(opcode)) || OpcodeLabels.getLabel(opcode);
+    let {label, category, labelFn} = (vm && ((Object.keys(params).length > 0) ? vm.runtime.getLabelForOpcodeWithArgument(opcode, params) : vm.runtime.getLabelForOpcode(opcode))) || OpcodeLabels.getLabel(opcode);
+    /** END PRG Additions */
 
     // Use labelFn if provided for dynamic labelling (e.g. variables)
     if (!isUndefined(labelFn)) label = labelFn(params);
