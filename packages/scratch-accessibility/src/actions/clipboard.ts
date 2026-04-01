@@ -11,13 +11,13 @@ import {
   Events,
   utils as blocklyUtils,
   clipboard,
-  ICopyData,
+  type ICopyData,
   LineCursor,
 } from 'blockly';
 import * as Constants from '../constants';
 import type {BlockSvg, WorkspaceSvg} from 'blockly';
 import {Navigation} from '../navigation';
-import {ScopeWithConnection} from './action_menu';
+import {type ScopeWithConnection} from './action_menu';
 
 const KeyCodes = blocklyUtils.KeyCodes;
 const createSerializedKey = ShortcutRegistry.registry.createSerializedKey.bind(

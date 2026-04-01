@@ -7,7 +7,7 @@
 import * as Blockly from 'blockly';
 import { getToolboxElement, getFlyoutElement } from '../src/workspace_utilities';
 import { getBlockMessage } from './block_descriptions';
-import { SpeechSettings } from './settings_dialog';
+import { type SpeechSettings } from './settings_dialog';
 
 /**
  * A simple screen reader implementation for Blockly that announces actions.

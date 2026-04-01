@@ -12,7 +12,7 @@ import {
 import * as Constants from '../constants';
 import type {WorkspaceSvg} from 'blockly';
 import {Navigation} from '../navigation';
-import {ScopeWithConnection} from './action_menu';
+import {type ScopeWithConnection} from './action_menu';
 
 const KeyCodes = BlocklyUtils.KeyCodes;
 
