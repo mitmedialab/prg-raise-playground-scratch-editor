@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/Samarh18/blockly-accessibility-demo
+	branch = main
+	commit = febc0ab3258faabe56d7af44a19cf08e4924e10b
+	parent = 3bc3e460783c9e08960ae7393c30c5cdddc9bebe
+	method = merge
+	cmdver = 0.4.9
