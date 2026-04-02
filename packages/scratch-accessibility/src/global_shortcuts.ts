@@ -133,14 +133,14 @@ export class GlobalShortcuts {
         }
 
         // Focus the workspace first to ensure proper state
-        this.navigationController.focusWorkspace(this.workspace);
+        Blockly.getFocusManager().focusTree(this.workspace);
 
         // Then focus the toolbox
         if (this.workspace.getToolbox()) {
-            this.navigationController.focusToolbox(this.workspace);
+            Blockly.getFocusManager().focusTree(this.workspace.getToolbox()!);
         } else {
             // If no toolbox, try flyout
-            this.navigationController.focusFlyout(this.workspace);
+            Blockly.getFocusManager().focusTree(this.workspace.getFlyout()!);
         }
     }
 
@@ -171,6 +171,6 @@ export class GlobalShortcuts {
         }
 
         // Focus the workspace
-        this.navigationController.focusWorkspace(this.workspace);
+        Blockly.getFocusManager().focusTree(this.workspace);
     }
 }

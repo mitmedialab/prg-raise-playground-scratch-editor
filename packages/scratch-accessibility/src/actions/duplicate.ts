@@ -8,11 +8,11 @@ import {
   BlockSvg,
   clipboard,
   ContextMenuRegistry,
-  ICopyable,
+  type ICopyable,
   ShortcutRegistry,
   utils,
   comments,
-  ICopyData,
+  type ICopyData,
 } from 'blockly';
 import * as Constants from '../constants';
 import {getMenuItem} from '../shortcut_formatting';
@@ -96,7 +96,7 @@ export class DuplicateAction {
         if (!data) return false;
         return !!clipboard.paste(data, workspace);
       },
-      keyCodes: [utils.KeyCodes.D],
+      keyCodes: [utils.KeyCodes.Y],
     };
     ShortcutRegistry.registry.register(shortcut);
     return shortcut;

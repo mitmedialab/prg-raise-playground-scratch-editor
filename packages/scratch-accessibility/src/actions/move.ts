@@ -13,10 +13,10 @@ import {
   keyboardNavigationController,
   getFocusManager,
   comments,
-  IDraggable,
-  IFocusableNode,
-  IBoundedElement,
-  ISelectable,
+  type IDraggable,
+  type IFocusableNode,
+  type IBoundedElement,
+  type ISelectable,
 } from 'blockly';
 import {Direction} from '../drag_direction';
 import {Mover, MoveType} from './mover';

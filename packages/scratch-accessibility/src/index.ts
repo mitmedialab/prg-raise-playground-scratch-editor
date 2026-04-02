@@ -8,7 +8,7 @@ import * as Blockly from 'blockly/core';
 import {NavigationController} from './navigation_controller';
 import {enableBlocksOnDrag} from './disabled_blocks';
 import {registerHtmlToast} from './html_toast';
-import {registerFlyoutCursor} from './flyout_cursor';
+import {FlyoutCursor, registerFlyoutCursor} from './flyout_cursor';
 import { GlobalShortcuts } from './global_shortcuts';
 import { AutoCleanup } from './auto_cleanup';
 
@@ -16,7 +16,7 @@ import { AutoCleanup } from './auto_cleanup';
 
 /** Options object for KeyboardNavigation instances. */
 export interface NavigationOptions {
-  cursor: Partial<Blockly.CursorOptions>;
+  cursor: Blockly.LineCursor | {};
   autoCleanup?: boolean;
 }
 
@@ -95,9 +95,9 @@ export class KeyboardNavigation {
     this.globalShortcuts.install();
 
     // Initialize auto cleanup if enabled
-    if (options.autoCleanup !== false) {
-      this.autoCleanup = new AutoCleanup(workspace);
-    }
+    // if (options.autoCleanup !== false) {
+    //   this.autoCleanup = new AutoCleanup(workspace);
+    // }
 
     // Add the event listener to enable disabled blocks on drag.
     workspace.addChangeListener(enableBlocksOnDrag);

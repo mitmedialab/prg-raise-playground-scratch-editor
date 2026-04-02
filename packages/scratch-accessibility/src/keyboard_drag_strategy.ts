@@ -157,7 +157,7 @@ export class KeyboardDragStrategy extends dragging.BlockDragStrategy {
     localConns: RenderedConnection[],
   ): ConnectionCandidate | null {
     let radius = Infinity;
-    let candidate = null;
+    let candidate: { local: RenderedConnection; neighbour: RenderedConnection; distance: number; } | null = null;
     const dxy = new utils.Coordinate(0, 0);
 
     for (const conn of localConns) {

@@ -35,6 +35,7 @@ import {MoveActions} from './actions/move';
 import {COMMIT_MOVE_SHORTCUT, Mover} from './actions/mover';
 import {DuplicateAction} from './actions/duplicate';
 import {StackNavigationAction} from './actions/stack_navigation';
+// import {SettingsDialog} from '../test/settings_dialog';
 
 const KeyCodes = BlocklyUtils.KeyCodes;
 
@@ -96,7 +97,7 @@ export class NavigationController {
   private lastToolboxLetterTime = 0;
   private currentToolboxLetterIndex = 0;
 
-  settingsDialog: SettingsDialog | null = null;
+  // settingsDialog: SettingsDialog | null = null;
 
   // Add the method here, before init()
   /**
@@ -293,7 +294,7 @@ export class NavigationController {
             return false;
         }
       },
-        keyCodes: [KeyCodes.B],
+        keyCodes: [KeyCodes.Z],
     },
 
     /** Clean up the workspace. */
@@ -347,7 +348,7 @@ export class NavigationController {
         name: 'TOOLBOX_FIRST_LETTER',
         preconditionFn: (workspace) => {
           // Only active when toolbox has focus
-          return this.navigation.getState(workspace) === Constants.STATE.TOOLBOX &&
+          return this.navigation.getState() === Constants.STATE.TOOLBOX &&
             workspace.getToolbox() !== null;
         },
         callback: (workspace, e) => {
@@ -377,10 +378,10 @@ export class NavigationController {
         name: 'OPEN_SETTINGS',
         preconditionFn: (workspace) => true,
         callback: (workspace) => {
-          if (this.settingsDialog) {
-            this.settingsDialog.toggle();
-            return true;
-          }
+          // if (this.settingsDialog) {
+          //   this.settingsDialog.toggle();
+          //   return true;
+          // }
           return false;
         },
         keyCodes: [KeyCodes.S],
@@ -447,10 +448,10 @@ export class NavigationController {
     }
     this.removeShortcutHandlers();
     this.navigation.dispose();
-    if (this.settingsDialog) {
-      this.settingsDialog.uninstall();
-      this.settingsDialog = null;
-    }
+    // if (this.settingsDialog) {
+    //   this.settingsDialog.uninstall();
+    //   this.settingsDialog = null;
+    // }
 
   }
 }
