@@ -8,11 +8,11 @@ import {
   BlockSvg,
   clipboard,
   ContextMenuRegistry,
-  ICopyable,
+  type ICopyable,
   ShortcutRegistry,
   utils,
   comments,
-  ICopyData,
+  type ICopyData,
 } from 'blockly';
 import * as Constants from '../constants';
 import {getMenuItem} from '../shortcut_formatting';
