@@ -27,6 +27,8 @@ import {
     getExtensionColors
 } from '../lib/settings/color-mode/blockHelpers';
 import {KeyboardNavigation} from "../../../scratch-accessibility/src/index"
+import {ScreenReader} from "../../../scratch-accessibility/test/screen_reader";
+import { SettingsDialog } from "../../../scratch-accessibility/test/settings_dialog";
 
 import {connect} from 'react-redux';
 import {updateToolbox} from '../reducers/toolbox';
@@ -129,7 +131,12 @@ class Blocks extends React.Component {
             autoCleanup: true, // Enable auto cleanup
         };
 
-        
+        const screenReader = new ScreenReader(this.workspace);
+        const settingsDialog = new SettingsDialog(screenReader);
+        settingsDialog.install();
+
+        // Expose globally for global shortcuts access
+        window.settingsDialog = settingsDialog;
         this.workspace.registerToolboxCategoryCallback(
             'VARIABLE',
             this.ScratchBlocks.ScratchVariables.getVariablesCategory
