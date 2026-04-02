@@ -35,7 +35,7 @@ import {MoveActions} from './actions/move';
 import {COMMIT_MOVE_SHORTCUT, Mover} from './actions/mover';
 import {DuplicateAction} from './actions/duplicate';
 import {StackNavigationAction} from './actions/stack_navigation';
-// import {SettingsDialog} from '../test/settings_dialog';
+import {SettingsDialog} from '../test/settings_dialog';
 
 const KeyCodes = BlocklyUtils.KeyCodes;
 

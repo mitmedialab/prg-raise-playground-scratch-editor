@@ -23,9 +23,9 @@ import {javascriptGenerator} from 'blockly/javascript';
 import {load} from './loadTestBlocks';
 import {runCode, registerRunCodeShortcut} from './runCode';
 import {createPlayground} from '@blockly/dev-tools';
-// import { ScreenReader } from './screen_reader';
+import { ScreenReader } from './screen_reader';
 
-// import { SettingsDialog } from './settings_dialog';
+import { SettingsDialog } from './settings_dialog';
 
 (window as unknown as {Blockly: typeof Blockly}).Blockly = Blockly;
 
@@ -78,14 +78,14 @@ async function createWorkspace(): Promise<Blockly.WorkspaceSvg> {
 
   //* NEED TO FIX *//
   // Initialize screen reader
-  // const screenReader = new ScreenReader(workspace);  // Store reference
+  const screenReader = new ScreenReader(workspace);  // Store reference
 
   // Initialize settings dialog and register shortcut
-  // const settingsDialog = new SettingsDialog(screenReader);
-  // settingsDialog.install();
+  const settingsDialog = new SettingsDialog(screenReader);
+  settingsDialog.install();
 
   // Expose globally for global shortcuts access
-  // (window as any).settingsDialog = settingsDialog;
+  (window as any).settingsDialog = settingsDialog;
   //* NEED TO FIX *//
 
 
