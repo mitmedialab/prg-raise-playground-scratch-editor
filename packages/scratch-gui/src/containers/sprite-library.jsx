@@ -7,6 +7,7 @@ import intlShape from '../lib/intlShape.js';
 import {spriteShape} from '../lib/assets-prop-types.js';
 import VM from '@scratch/scratch-vm';
 import mergeDynamicAssets from '../lib/merge-dynamic-assets.js';
+import doodlebotcostume1 from "!!raw-loader!../lib/default-project/doodlebotcostume1.svg";
 
 import spriteLibraryContent from '../lib/libraries/sprites.json';
 import randomizeSpritePosition from '../lib/randomize-sprite-position';
@@ -30,6 +31,52 @@ class SpriteLibrary extends React.PureComponent {
             'mergeDynamicAssets'
         ]);
         this.processedSprites = {};
+        let _TextEncoder;
+        if (typeof TextEncoder === "undefined") {
+            _TextEncoder = require("text-encoding").TextEncoder;
+        } else {
+            /* global TextEncoder */
+            _TextEncoder = TextEncoder;
+        }
+        const encoder = new _TextEncoder();
+
+        spriteLibraryContent.push({
+            name: "Doodlebot",
+            tags: [
+                "robot",
+                "creativity",
+            ],
+            isStage: false,
+            variables: {},
+            costumes: [
+                {
+                    assetId: "b7853f557e4426412e64bb3da6531a99",
+                    name: "doodlebotcostume1",
+                    bitmapResolution: 1,
+                    md5ext: `data:image/svg+xml;base64,${encoder
+                        .encode(doodlebotcostume1)
+                        .toBase64()}`,
+                    dataFormat: "svg",
+                    rotationCenterX: 128,
+                    rotationCenterY: 145,
+                },
+            ],
+            sounds: [
+                {
+                    assetId: "1727f65b5f22d151685b8e5917456a60",
+                    name: "Robot Sound",
+                    dataFormat: "wav",
+                    format: "adpcm",
+                    rate: 22050,
+                    sampleCount: 8129,
+                    md5ext: "1727f65b5f22d151685b8e5917456a60.wav",
+                },
+            ],
+            blocks: {},
+        });
+        spriteLibraryContent.sort((a, b) => {
+            return a.name.localeCompare(b.name);
+        });
     }
     handleItemSelect (item) {
         // Randomize position of library sprite

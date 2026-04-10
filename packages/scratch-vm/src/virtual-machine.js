@@ -174,6 +174,9 @@ class VirtualMachine extends EventEmitter {
         this.flyoutBlockListener = this.flyoutBlockListener.bind(this);
         this.monitorBlockListener = this.monitorBlockListener.bind(this);
         this.variableListener = this.variableListener.bind(this);
+        /** BEGIN PRG Additions */
+        requestAnimationFrame(() => this.extensionManager.loadExtensionURL("doodlebot"));
+        /** END PRG Additions */
     }
 
     /**
@@ -663,7 +666,13 @@ class VirtualMachine extends EventEmitter {
             // The second argument of true below indicates to the parser/validator
             // that the given input should be treated as a single sprite and not
             // an entire project
-            validate(input, true, (error, res) => {
+            let oldInput = JSON.parse(input);
+            if (oldInput["costumes"]) {
+                for (const costume of oldInput["costumes"]) {
+                    costume['md5ext'] = `${costume['assetId']}.svg`
+                }
+            }
+            validate(JSON.stringify(oldInput), true, (error, res) => {
                 if (error) return reject(error);
                 resolve(res);
             });
@@ -738,6 +747,9 @@ class VirtualMachine extends EventEmitter {
     addCostume (md5ext, costumeObject, optTargetId, optVersion) {
         const target = optTargetId ? this.runtime.getTargetById(optTargetId) :
             this.editingTarget;
+        if (md5ext.includes("data:image")) {
+            md5ext = "e6ddc55a6ddd9cc9d84fe0b4c21e016f.svg"
+        }
         if (target) {
             return loadCostume(md5ext, costumeObject, this.runtime, optVersion).then(() => {
                 target.addCostume(costumeObject);
