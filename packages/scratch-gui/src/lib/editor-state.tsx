@@ -1,8 +1,8 @@
-import {createStore, combineReducers, compose, Store} from 'redux';
+import {createStore, combineReducers, compose, type Store} from 'redux';
 import localesReducer, {initLocale, localesInitialState} from '../reducers/locales';
 import locales from 'scratch-l10n';
 import {detectLocale} from './detect-locale';
-import {GUIConfig} from '../gui-config';
+import {type GUIConfig} from '../gui-config';
 import log from './log.js';
 
 interface WindowWithDevtools {

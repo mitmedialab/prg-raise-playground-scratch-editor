@@ -1,4 +1,4 @@
-import {SerializableData, BackpackItemType} from '../../gui-config';
+import {type SerializableData, type BackpackItemType} from '../../gui-config';
 
 /**
  * The shape of a backpack payload as returned by the existing payload functions

@@ -537,9 +537,12 @@ const serializeMonitors = function (monitors) {
  * Serializes the specified VM runtime.
  * @param {!Runtime} runtime VM runtime instance to be serialized.
  * @param {string=} targetId Optional target id if serializing only a single target
- * @returns {object} Serialized runtime instance.
+ * PRG ADDITION BEGIN
+ * @param {import("../extension-support/extension-manager")} extensionManager Reference to VM's extension manager.
+ * PRG ADDITION END
+ * @return {object} Serialized runtime instance.
  */
-const serialize = function (runtime, targetId) {
+const serialize = function (runtime, targetId, /* PRG ADDITION BEGIN */ extensionManager /* PRG ADDITION END */) {
     // Fetch targets
     const obj = Object.create(null);
     // Create extension set to hold extension ids found while serializing targets
@@ -571,8 +574,20 @@ const serialize = function (runtime, targetId) {
 
     obj.monitors = serializeMonitors(runtime.getMonitorState());
 
+    /* PRG ADDITION BEGIN */
+    extensionManager.getLoadedExtensionIDs().forEach(id => {
+        const instance = extensionManager.getExtensionInstance(id);
+        instance["save"]?.(obj, extensions);
+    });
+    /* PRG ADDITION END */
+
     // Assemble extension list
     obj.extensions = Array.from(extensions);
+
+    /* PRG ADDITION BEGIN */
+    // Save training data for the text classifier model
+    obj.textModel = runtime.modelData ? runtime.modelData.classifierData : undefined;
+    /* PRG ADDITION END */
 
     // Assemble metadata
     const meta = Object.create(null);
@@ -1293,6 +1308,25 @@ const deserialize = function (json, runtime, zip, isSingleSprite) {
         extensionIDs: new Set(),
         extensionURLs: new Map()
     };
+
+    /* PRG ADDITION BEGIN */
+    json["extensions"]?.forEach(id => extensions.extensionIDs.add(id));
+
+    // Unpack the data for the text model
+    runtime.modelData = { "textData": {}, "classifierData": {}, "nextLabelNumber": 1 };
+    if (json.hasOwnProperty("textModel")) {
+        // RANDI should make sure this works
+        for (let label of Object.keys(json.textModel)) {
+            runtime.modelData.textData[label] = [];
+            runtime.modelData.classifierData[label] = [];
+            runtime.modelData.nextLabelNumber++;
+            for (let example of json.textModel[label]) {
+                runtime.modelData.textData[label].push(example);
+                runtime.modelData.classifierData[label].push(example);
+            }
+        }
+    }
+    /* PRG ADDITION END */
 
     // Store the origin field (e.g. project originated at CSFirst) so that we can save it again.
     if (json.meta && json.meta.origin) {

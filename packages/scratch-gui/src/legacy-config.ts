@@ -1,4 +1,4 @@
-import {GUIConfig} from './gui-config';
+import {type GUIConfig} from './gui-config';
 import {LegacyStorage} from './lib/legacy-storage';
 
 export const legacyConfig: GUIConfig = {

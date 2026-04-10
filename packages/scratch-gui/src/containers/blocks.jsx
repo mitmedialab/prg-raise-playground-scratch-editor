@@ -35,7 +35,7 @@ import {activateCustomProcedures, deactivateCustomProcedures} from '../reducers/
 import {setConnectionModalExtensionId} from '../reducers/connection-modal';
 import {updateMetrics} from '../reducers/workspace-metrics';
 import {isTimeTravel2020} from '../reducers/time-travel';
-
+import { openUIEvent, registerButtonCallbackEvent } from "../dist/globals";
 import {
     activateTab,
     SOUNDS_TAB_INDEX
@@ -162,9 +162,16 @@ class Blocks extends React.Component {
             this.ScratchBlocks.ScratchProcedures.createProcedureDefCallback(this.workspace);
         };
 
+        const connectMicrobitRobotCallback = () => {
+            this.props.vm.runtime.emit('CONNECT_MICROBIT_ROBOT');
+        }
+
         toolboxWorkspace.registerButtonCallback('MAKE_A_VARIABLE', varListButtonCallback(''));
         toolboxWorkspace.registerButtonCallback('MAKE_A_LIST', varListButtonCallback('list'));
         toolboxWorkspace.registerButtonCallback('MAKE_A_PROCEDURE', procButtonCallback);
+        toolboxWorkspace.registerButtonCallback('CONNECT_MICROBIT_ROBOT', connectMicrobitRobotCallback);
+
+        this.props.vm.runtime.on(openUIEvent, (details) => this.props.onOpenProgrammaticModal(details));
 
         // Store the xml of the toolbox that is actually rendered.
         // This is used in componentDidUpdate instead of prevProps, because
@@ -175,6 +182,8 @@ class Blocks extends React.Component {
         addFunctionListener(this.workspace, 'translate', this.onWorkspaceMetricsChange);
         addFunctionListener(this.workspace, 'zoom', this.onWorkspaceMetricsChange);
         this.workspace.getToolbox().selectItemByPosition(0);
+
+        //this.workspace.getToolbox().selectItemByPosition(0);
 
         this.attachVM();
         // Only update blocks/vm locale when visible to avoid sizing issues
@@ -274,7 +283,21 @@ class Blocks extends React.Component {
                 this.props.vm.refreshWorkspace();
                 this.requestToolboxUpdate();
                 this.withToolboxUpdates(() => {
-                    this.workspace.getFlyout().setRecyclingEnabled(true);
+                    this.flyout = this.workspace.getFlyout();
+                    this.flyout.setRecyclingEnabled(true);
+
+                    /* PRG ADDITION BEGIN */
+
+                    // Moved from `componentDidMount` due to strange blockly error after changing locale.
+                    // Worth retesting after updating scratch, as this may have been addressed in later blockly versions.
+                    const registerButtonCallback = (event) =>
+                        this.workspace.getFlyout()
+                            ? this.workspace.registerButtonCallback(event, () => { this.props.vm.runtime.emit(event) })
+                            : this.props.vm.runtime.off(registerButtonCallbackEvent, registerButtonCallback)
+
+                    this.props.vm.runtime.on(registerButtonCallbackEvent, registerButtonCallback.bind(this));
+
+                    /* PRG ADDITION END */
                 });
             });
     }
@@ -628,8 +651,11 @@ class Blocks extends React.Component {
         p.prompt.showCloudOption = (optVarType === this.ScratchBlocks.SCALAR_VARIABLE_TYPE) && this.props.canUseCloud;
         this.setState(p);
     }
-    handleConnectionModalStart (extensionId) {
-        this.props.onOpenConnectionModal(extensionId);
+    handleConnectionModalStart(extensionId) {
+        let prgCustomExtensions = ['microbitRobot', 'teachableMachine'];
+        if (!prgCustomExtensions.includes(extensionId)) {
+            this.props.onOpenConnectionModal(extensionId);
+        }
     }
     handleStatusButtonUpdate () {
         this.workspace.getFlyout().refreshStatusButtons();
@@ -686,6 +712,8 @@ class Blocks extends React.Component {
             onActivateCustomProcedures,
             onRequestCloseExtensionLibrary,
             onRequestCloseCustomProcedures,
+            onOpenTextModelModal,
+            onOpenClassifierModelModal,
             toolboxXML,
             updateMetrics: updateMetricsProp,
             useCatBlocks,
@@ -748,6 +776,8 @@ Blocks.propTypes = {
     onActivateColorPicker: PropTypes.func,
     onActivateCustomProcedures: PropTypes.func,
     onOpenConnectionModal: PropTypes.func,
+    onOpenTextModelModal: PropTypes.func,
+    onOpenClassifierModelModal: PropTypes.func,
     onOpenSoundRecorder: PropTypes.func,
     onRequestCloseCustomProcedures: PropTypes.func,
     onRequestCloseExtensionLibrary: PropTypes.func,
@@ -823,9 +853,18 @@ const mapDispatchToProps = dispatch => ({
         dispatch(setConnectionModalExtensionId(id));
         dispatch(openConnectionModal());
     },
+    onOpenTextModelModal: () => {
+        dispatch(openTextModelModal());
+    },
+    onOpenClassifierModelModal: () => {
+        dispatch(openClassifierModelModal());
+    },
     onOpenSoundRecorder: () => {
         dispatch(activateTab(SOUNDS_TAB_INDEX));
         dispatch(openSoundRecorder());
+    },
+    onOpenProgrammaticModal: (details) => {
+        dispatch(openProgrammaticModal(details))
     },
     onRequestCloseExtensionLibrary: () => {
         dispatch(closeExtensionLibrary());

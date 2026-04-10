@@ -160,6 +160,9 @@ GUI.propTypes = {
     projectId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     shouldStopProject: PropTypes.bool,
     telemetryModalVisible: PropTypes.bool,
+    textModelModalVisible: PropTypes.bool,
+    classifierModelModalVisible: PropTypes.bool,
+    classifierModelModalVisible: PropTypes.bool,
     username: PropTypes.string,
     userOwnsProject: PropTypes.bool,
     // TODO: Is this unused?
@@ -204,7 +207,12 @@ const mapStateToProps = (state, ownProps) => {
         ),
         telemetryModalVisible: state.scratchGui.modals.telemetryModal,
         tipsLibraryVisible: state.scratchGui.modals.tipsLibrary,
-        vm: state.scratchGui.vm
+        textModelModalVisible: state.scratchGui.modals.textModelModal,
+        classifierModelModalVisible: state.scratchGui.modals.classifierModelModal,
+        programmaticModalDetails: state.scratchGui.modals.programmaticModal,
+        vm: state.scratchGui.vm,
+        textModelModalVisible: state.scratchGui.modals.textModelModal,
+        classifierModelModalVisible: state.scratchGui.modals.classifierModelModal,
     };
 };
 

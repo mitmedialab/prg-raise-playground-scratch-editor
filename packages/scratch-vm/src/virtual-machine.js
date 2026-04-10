@@ -157,6 +157,12 @@ class VirtualMachine extends EventEmitter {
             this.emit(Runtime.HAS_CLOUD_DATA_UPDATE, hasCloudData);
         });
 
+        /** PRG ADDITION BEGIN */
+        this.runtime.on(Runtime.ADD_BLOCKS_TO_WORKSPACE, (xmlToAdd) => {
+            this.emitWorkspaceUpdateWithAdditionalBlocks(xmlToAdd);
+        });
+        /** PRG ADDITION END */
+
         this.extensionManager = new ExtensionManager(this.runtime);
 
         // Load core extensions
@@ -384,6 +390,65 @@ class VirtualMachine extends EventEmitter {
         });
     }
 
+    /** PRG ADDITION BEGIN */
+    uploadProjectToURL(url) {
+        const delimiter = url.indexOf(";");
+        const authToken = url.substr(delimiter + 1);
+        url = url.substr(0, delimiter);
+
+        this.saveProjectSb3().then(content =>
+            fetch(url, {
+                method: "PATCH",
+                headers: {
+                    'Content-Type': content.type,
+                    'Authorization': 'Bearer ' + authToken,
+                },
+                encoding: undefined,
+                body: content
+            }).then((res) => res.ok ?
+                console.log("Project uploaded successfully") :
+                console.error("Project upload failed")
+            ).catch((err) => console.error(err))
+        );
+    }
+
+
+    downloadProjectFromURLDirect(url) {
+        // Handle loading google drive files
+        if (url.includes("googleapis.com")) {
+            // get authToken using regex
+            const delimiter = url.indexOf(";");
+            const authToken = url.substr(delimiter + 1);
+            url = url.substr(0, delimiter);
+            return new Promise(async (resolve, reject) => {
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': 'Bearer ' + authToken,
+                    }
+                });
+                resolve(this.loadProject(await response.text()));
+            })
+        } else if (url.includes("dropbox.com")) {
+            // Handle loading dropbox links
+            const dropboxRegex = /\/(s|scl)(\/fi)?\/[A-Za-z0-9]+\/.*.sb3(\?rlkey=[A-Za-z0-9]*)?/;
+            const found = url.match(dropboxRegex);
+            if (found.length > 0) url = 'https://dl.dropboxusercontent.com' + found[0];
+        }
+
+        return new Promise(async (resolve, reject) => {
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                console.error("Failed to load project from URL: " + url + " with status code: " + response.status);
+                return resolve();
+            }
+
+            resolve(this.loadProject(await response.arrayBuffer()));
+        })
+    }
+    /** PRG ADDITION END */
+
+
     /**
      * @returns {string} Project in a Scratch 3.0 JSON representation.
      */
@@ -466,7 +531,7 @@ class VirtualMachine extends EventEmitter {
      */
     toJSON (optTargetId) {
         const sb3 = require('./serialization/sb3');
-        return StringUtil.stringify(sb3.serialize(this.runtime, optTargetId));
+        return StringUtil.stringify(sb3.serialize(this.runtime, optTargetId, /** PRG ADDITION BEGIN */ this.extensionManager /** PRG ADDITION END */));
     }
 
     // TODO do we still need this function? Keeping it here so as not to introduce
@@ -516,7 +581,7 @@ class VirtualMachine extends EventEmitter {
                     performance.measure('scratch-vm-deserialize',
                         'scratch-vm-deserialize-start', 'scratch-vm-deserialize-end');
                 }
-                return this.installTargets(targets, extensions, true);
+                return this.installTargets(targets, extensions, true, projectJSON);
             });
     }
 
@@ -527,15 +592,17 @@ class VirtualMachine extends EventEmitter {
      * @param {boolean} wholeProject - set to true if installing a whole project, as opposed to a single sprite.
      * @returns {Promise} resolved once targets have been installed
      */
-    installTargets (targets, extensions, wholeProject) {
-        const extensionPromises = [];
+    installTargets(targets, extensions, wholeProject, fullJSON) {
 
-        extensions.extensionIDs.forEach(extensionID => {
-            if (!this.extensionManager.isExtensionLoaded(extensionID)) {
-                const extensionURL = extensions.extensionURLs.get(extensionID) || extensionID;
-                extensionPromises.push(this.extensionManager.loadExtensionURL(extensionURL));
-            }
+        /** PRG ADDITION BEGIN */
+        const { extensionManager } = this;
+        const extensionPromises = Array.from(extensions.extensionIDs).map(async extensionID => {
+            if (!extensionManager.isExtensionLoaded(extensionID)) await extensionManager.loadExtensionURL(extensionID);
+            const instance = this.extensionManager.getExtensionInstance(extensionID);
+            instance?.["load"]?.(fullJSON); // TODO: Verify that this is okay to do on already loaded extensions
+            return instance;
         });
+        /** PRG ADDITION END */
 
         targets = targets.filter(target => !!target);
 
@@ -1362,11 +1429,19 @@ class VirtualMachine extends EventEmitter {
         }
     }
 
+    /** PRG ADDITION BEGIN */
+
     /**
-     * Emit an Blockly/scratch-blocks compatible XML representation
+     * NOTE: The change was to extract the xml generating aspects of the original implementation of `emitWorkspaceUpdate`,
+     * and stick into a new function `generateWorkspaceXML` that can then be called by `emitWorkspaceUpdate`, 
+     * as well as our new method `emitWorkspaceUpdateWithAdditionalBlocks`.
+     */
+
+    /**
+     * Retrieve a Blockly/scratch-blocks compatible XML representation
      * of the current editing target's blocks.
      */
-    emitWorkspaceUpdate () {
+    getWorkspaceXML() {
         // Create a list of broadcast message Ids according to the stage variables
         const stageVariables = this.runtime.getTargetForStage().variables;
         let messageIds = [];
@@ -1407,18 +1482,32 @@ class VirtualMachine extends EventEmitter {
             .map(k => this.editingTarget.comments[k])
             .filter(c => c.blockId === null);
 
-        const xmlString = `<xml xmlns="http://www.w3.org/1999/xhtml">
-                            <variables>
-                                ${globalVariables.map(v => v.toXML()).join()}
-                                ${localVariables.map(v => v.toXML(true)).join()}
-                            </variables>
-                            ${workspaceComments.map(c => c.toXML()).join()}
-                            ${this.editingTarget.blocks.toXML(this.editingTarget.comments)}
-                        </xml>`;
-
-        this.emit('workspaceUpdate', {xml: xmlString});
+        return `<xml xmlns="http://www.w3.org/1999/xhtml">
+                    <variables>
+                        ${globalVariables.map(v => v.toXML()).join()}
+                        ${localVariables.map(v => v.toXML(true)).join()}
+                    </variables>
+                    ${workspaceComments.map(c => c.toXML()).join()}
+                    ${this.editingTarget.blocks.toXML(this.editingTarget.comments)}
+                </xml>`;
     }
 
+    /**
+     * Emit an Blockly/scratch-blocks compatible XML representation
+     * of the current editing target's blocks.
+     */
+    emitWorkspaceUpdate() {
+        this.emit('workspaceUpdate', { xml: this.getWorkspaceXML() });
+    }
+
+    emitWorkspaceUpdateWithAdditionalBlocks(newBlocksXML) {
+        const workspaceXml = this.getWorkspaceXML().split(/\n/);
+        workspaceXml.splice(workspaceXml.length - 1, 0, newBlocksXML.split(/\n/));
+        const updated = workspaceXml.join('\r\n');
+        this.emit('workspaceUpdate', { xml: updated });
+    }
+
+    /** PRG ADDITION END */
     /**
      * Get a target id for a drawable id. Useful for interacting with the renderer
      * @param {int} drawableId The drawable id to request the target id for

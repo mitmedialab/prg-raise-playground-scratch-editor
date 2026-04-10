@@ -1,30 +1,32 @@
 {
-  "include": ["src"],
+  "extends": "@tsconfig/svelte/tsconfig.json",
+  "include": [
+    "src",
+    "node_modules/scratch-vm/src/**/*",
+    "../scratch-vm/src/**/*",
+    "node_modules/scratch-blocks/src/**/*",
+    "../scratch-blocks/src/**/*"
+  ],
+  
   "compilerOptions": {
-    /* Visit https://aka.ms/tsconfig to read more about this file */
+    "ignoreDeprecations": "5.0",
+    "verbatimModuleSyntax": true,
+    "importsNotUsedAsValues": "remove",
 
-    /* Language and Environment */
     "target": "ESNext",
     "jsx": "react",
-
-    /* Modules */
-    "module": "commonjs",
+    "module": "ESNext",
     "types": ["./src/types.d.ts"],
 
-    /* Emit */
     "declaration": true,
     "sourceMap": true,
     "outDir": "./dist/types/",
 
-    /* Interop Constraints */
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
 
-    /* Type Checking */
     "strict": true,
     "noImplicitAny": false,
-
-    /* Completeness */
     "skipLibCheck": true
   }
 }

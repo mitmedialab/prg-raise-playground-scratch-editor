@@ -5,6 +5,7 @@ import {defineMessages, useIntl} from 'react-intl';
 
 import GreenFlag from '../green-flag/green-flag.jsx';
 import StopAll from '../stop-all/stop-all.jsx';
+import Record from '../record-buttons/record.jsx';
 import TurboMode from '../turbo-mode/turbo-mode.jsx';
 
 import styles from './controls.css';
@@ -25,9 +26,13 @@ const messages = defineMessages({
 const Controls = function (props) {
     const {
         active,
+        recording,
         className,
         onGreenFlagClick,
         onStopAllClick,
+        onRecordClick,
+        onStopRecordClick,
+        onDownloadClick,
         turbo,
         ...componentProps
     } = props;
@@ -47,6 +52,11 @@ const Controls = function (props) {
                 title={intl.formatMessage(messages.stopTitle)}
                 onClick={onStopAllClick}
             />
+            <Record
+                active={recording}
+                title={intl.formatMessage(messages.stopTitle)}
+                onClick={onRecordClick}
+            />
             {turbo ? (
                 <TurboMode />
             ) : null}
@@ -56,9 +66,13 @@ const Controls = function (props) {
 
 Controls.propTypes = {
     active: PropTypes.bool,
+    recording: PropTypes.bool,
     className: PropTypes.string,
     onGreenFlagClick: PropTypes.func.isRequired,
     onStopAllClick: PropTypes.func.isRequired,
+    onRecordClick: PropTypes.func.isRequired,
+    onStopRecordClick: PropTypes.func.isRequired,
+    onDownloadClick: PropTypes.func.isRequired,
     turbo: PropTypes.bool
 };
 

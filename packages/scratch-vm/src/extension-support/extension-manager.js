@@ -3,6 +3,14 @@ const log = require('../util/log');
 const maybeFormatMessage = require('../util/maybe-format-message');
 
 const BlockType = require('./block-type');
+/** BEGIN PRG Additions */
+const { tryInitExtension, tryGetExtensionConstructorFromBundle, tryGetAuxiliaryObjectFromLoadedBundle } = require('./prg/bundle-loader');
+
+const tryRetrieveExtensionConstructor = async (extensionId) =>
+    await extensionId in builtinExtensions
+        ? builtinExtensions[extensionId]()
+        : tryGetExtensionConstructorFromBundle(extensionId);
+/** END PRG Additions */
 
 // These extensions are currently built into the VM repository but should not be loaded at startup.
 // TODO: move these out into a separate repository?
@@ -24,6 +32,13 @@ const builtinExtensions = {
     makeymakey: () => require('../extensions/scratch3_makeymakey'),
     boost: () => require('../extensions/scratch3_boost'),
     gdxfor: () => require('../extensions/scratch3_gdx_for'),
+    /** BEGIN PRG Additions */
+    speech2text: () => require('../extensions/scratch3_speech2text'),
+    arduinoRobot: () => require('../extensions/scratch3_arduinobot'),
+    gizmoRobot: () => require('../extensions/scratch3_gizmo'),
+    microbitRobot: () => require('../extensions/scratch3_microbot'),
+    musiccreation: () => require('../extensions/scratch3_musiccreation'),
+    /** END PRG Additions */
     faceSensing: () => require('../extensions/scratch3_face_sensing')
 };
 
@@ -115,11 +130,10 @@ class ExtensionManager {
      * fail if the provided id is not does not match an internal extension.
      * @param {string} extensionId - the ID of an internal extension
      */
-    loadExtensionIdSync (extensionId) {
-        if (!Object.prototype.hasOwnProperty.call(builtinExtensions, extensionId)) {
-            log.warn(`Could not find extension ${extensionId} in the built in extensions.`);
-            return;
-        }
+    async loadExtensionIdSync(extensionId) {
+        const extension = await tryRetrieveExtensionConstructor(extensionId);
+
+        if (!extension) return log.warn(`Could not find extension ${extensionId} in the built in extensions.`);
 
         /** @TODO dupe handling for non-builtin extensions. See commit 670e51d33580e8a2e852b3b038bb3afc282f81b9 */
         if (this.isExtensionLoaded(extensionId)) {
@@ -128,41 +142,49 @@ class ExtensionManager {
             return;
         }
 
-        const extension = builtinExtensions[extensionId]();
         const extensionInstance = new extension(this.runtime);
+        await tryInitExtension(extensionInstance);
         const serviceName = this._registerInternalExtension(extensionInstance);
         this._loadedExtensions.set(extensionId, serviceName);
     }
+
 
     /**
      * Load an extension by URL or internal extension ID
      * @param {string} extensionURL - the URL for the extension to load OR the ID of an internal extension
      * @returns {Promise} resolved once the extension is loaded and initialized or rejected on failure
      */
-    loadExtensionURL (extensionURL) {
-        if (Object.prototype.hasOwnProperty.call(builtinExtensions, extensionURL)) {
+    async loadExtensionURL(extensionURL) {
+        const extension = await tryRetrieveExtensionConstructor(extensionURL);
+
+        if (extension) {
             /** @TODO dupe handling for non-builtin extensions. See commit 670e51d33580e8a2e852b3b038bb3afc282f81b9 */
             if (this.isExtensionLoaded(extensionURL)) {
                 const message = `Rejecting attempt to load a second extension with ID ${extensionURL}`;
                 log.warn(message);
-                return Promise.resolve();
+                return;
             }
-
-            const extension = builtinExtensions[extensionURL]();
             const extensionInstance = new extension(this.runtime);
+            await tryInitExtension(extensionInstance);
             const serviceName = this._registerInternalExtension(extensionInstance);
             this._loadedExtensions.set(extensionURL, serviceName);
-            return Promise.resolve();
+            return;
         }
 
         return new Promise((resolve, reject) => {
             // If we `require` this at the global level it breaks non-webpack targets, including tests
             const worker = new Worker('./extension-worker.js');
 
-            this.pendingExtensions.push({extensionURL, resolve, reject});
+            this.pendingExtensions.push({ extensionURL, resolve, reject });
             dispatch.addWorker(worker);
         });
     }
+
+    /** Begin PRG Additions */
+    getLoadedExtensionIDs() { return Array.from(this._loadedExtensions.keys()) }
+    getExtensionInstance(id) { return this._loadedExtensions.has(id) ? dispatch.services[this._loadedExtensions.get(id)] : undefined }
+    getAuxiliaryObject(extensionID, name) { return tryGetAuxiliaryObjectFromLoadedBundle(extensionID, name) };
+    /** END PRG Additions */
 
     /**
      * Regenerate blockinfo for any loaded extensions
@@ -348,7 +370,12 @@ class ExtensionManager {
 
         // TODO: Fix this to use dispatch.call when extensions are running in workers.
         const menuFunc = extensionObject[menuItemFunctionName];
-        const menuItems = menuFunc.call(extensionObject, editingTargetID).map(
+
+        /** BEGIN PRG Additions */
+        const menuResult = menuFunc.call(extensionObject, editingTargetID);
+
+        const menuItems = menuResult.map(
+            /** END PRG Additions */
             item => {
                 item = maybeFormatMessage(item, extensionMessageContext);
                 switch (typeof item) {

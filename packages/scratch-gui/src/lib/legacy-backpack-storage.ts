@@ -1,12 +1,12 @@
 import xhr from 'xhr';
 import {ScratchStorage, Asset} from 'scratch-storage';
 import {
-    GUIBackpackStorage,
-    BackpackListItemsInput,
-    BackpackSaveItemInput,
-    BackpackItem,
-    BackpackSession,
-    SerializableData
+    type GUIBackpackStorage,
+    type BackpackListItemsInput,
+    type BackpackSaveItemInput,
+    type BackpackItem,
+    type BackpackSession,
+    type SerializableData
 } from '../gui-config';
 
 type BackpackItemWithoutUrls = Omit<BackpackItem, 'thumbnailUrl' | 'bodyUrl'>;

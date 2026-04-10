@@ -42,6 +42,7 @@ import styles from './gui.css';
 import codeIcon from './icon--code.svg';
 import costumesIcon from './icon--costumes.svg';
 import soundsIcon from './icon--sounds.svg';
+import ProgrammaticModal from '../programmatic-modal/programmatic-modal.jsx';
 import DebugModal from '../debug-modal/debug-modal.jsx';
 import {setPlatform} from '../../reducers/platform.js';
 import {setTheme} from '../../reducers/settings.js';
@@ -198,6 +199,9 @@ const GUIComponent = props => {
         colorMode,
         theme,
         tipsLibraryVisible,
+        textModelModalVisible,
+        programmaticModalDetails,
+        classifierModelModalVisible,
         useExternalPeripheralList,
         username,
         userOwnsProject,
@@ -654,6 +658,9 @@ GUIComponent.propTypes = {
     colorMode: PropTypes.string,
     theme: PropTypes.string,
     tipsLibraryVisible: PropTypes.bool,
+    textModelModalVisible: PropTypes.bool,
+    programmaticModalVisible: PropTypes.bool,
+    classifierModelModalVisible: PropTypes.bool,
     useExternalPeripheralList: PropTypes.bool, // true for CDM, false for normal Scratch Link
     username: PropTypes.string,
     userOwnsProject: PropTypes.bool,

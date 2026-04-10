@@ -1,7 +1,7 @@
 import {ScratchStorage, Asset} from 'scratch-storage';
 
 import defaultProject from './default-project';
-import {GUIStorage, TranslatorFunction} from '../gui-config';
+import {type GUIStorage, type TranslatorFunction} from '../gui-config';
 import {LegacyBackpackStorage} from './legacy-backpack-storage';
 
 import saveProjectToServer from '../lib/save-project-to-server';

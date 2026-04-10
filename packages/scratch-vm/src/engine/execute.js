@@ -4,6 +4,9 @@ const log = require('../util/log');
 const Thread = require('./thread');
 const {Map} = require('immutable');
 const cast = require('../util/cast');
+/** PRG ADDITION BEGIN */
+const { blockIDKey } = require("../dist/globals");
+/** PRG ADDITION END */
 
 /**
  * Single BlockUtility instance reused by execute for every pritimive ran.
@@ -510,6 +513,10 @@ const execute = function (sequencer, thread) {
         }
 
         // Inputs are set during previous steps in the loop.
+
+        /** PRG ADDITION BEGIN */
+        blockUtility[blockIDKey] = opCached.id;
+        /** PRG ADDITION END */
 
         const primitiveReportedValue = blockFunction(argValues, blockUtility);
 

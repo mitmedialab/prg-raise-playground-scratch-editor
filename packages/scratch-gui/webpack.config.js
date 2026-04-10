@@ -5,10 +5,52 @@ const webpack = require('webpack');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
+
 const ScratchWebpackConfigBuilder = require('scratch-webpack-configuration');
+const { createSveltePreprocessor } = require("./svelte.config.js");
 
 // const STATIC_PATH = process.env.STATIC_PATH || '/static';
 
+const fs = require('fs');
+
+
+class PatchWorkerPlugin {
+  constructor() {
+    this.folder = '../../node_modules/scratch-storage/dist/web';
+    this.publicPath = process.env.PUBLIC_PATH || '/';
+  }
+
+  apply(compiler) {
+    // Use the async 'beforeCompile' hook
+    compiler.hooks.beforeCompile.tapAsync('PatchWorkerPlugin', (params, callback) => {
+      const folderPath = path.resolve(__dirname, this.folder);
+
+      if (!fs.existsSync(folderPath)) {
+        console.log(`[PatchWorkerPlugin] Folder not found: ${folderPath}`);
+        return callback(); // continue build
+      }
+
+      const files = fs.readdirSync(folderPath).filter(f => f.endsWith('.js') || f.endsWith('.js.map'));
+
+      files.forEach(file => {
+        const filePath = path.join(folderPath, file);
+        let code = fs.readFileSync(filePath, 'utf-8');
+
+        code = code.replace(
+          /__webpack_require__\.p\s*=\s*["'].*?["'];/,
+          `__webpack_require__.p = "${this.publicPath}";`
+        );
+
+        fs.writeFileSync(filePath, code, 'utf-8');
+        console.log(`[PatchWorkerPlugin] Patched ${filePath}`);
+      });
+
+      // Build will wait until this callback is called
+      callback();
+    });
+  }
+}
+    
 const commonHtmlWebpackPluginOptions = {
     // Google Tag Manager ID
     // Looks like 'GTM-XXXXXXX'
@@ -18,7 +60,8 @@ const commonHtmlWebpackPluginOptions = {
     // Looks like '&gtm_auth=0123456789abcdefghijklm&gtm_preview=env-00&gtm_cookies_win=x'
     // Taken from the middle of: GTM -> Admin -> Environments -> (environment) -> Get Snippet
     // Blank for production
-    gtm_env_auth: process.env.GTM_ENV_AUTH || ''
+    gtm_env_auth: process.env.GTM_ENV_AUTH || '',
+    base: process.env.PUBLIC_PATH || '/'
 };
 
 const cssModuleExceptions = [
@@ -55,16 +98,29 @@ const baseConfig = new ScratchWebpackConfigBuilder(
         }
     })
     .addModuleRule({
-        test: /\.(svg|png|wav|mp3|gif|jpg)$/,
+        test: /\.(svg|png|wav|gif|jpg)$/,
         resourceQuery: /^$/, // reject any query string
         type: 'asset' // let webpack decide on the best type of asset
     })
+    .addModuleRule({
+        test: /\.hex$/,
+        type: 'asset/resource'
+    })
+    .addModuleRule({
+        test: /\.mp3$/,
+        type: 'asset'
+    })
+    .addPlugin(new webpack.ProvidePlugin({
+        Buffer: ['buffer', 'Buffer']
+    }))
     .addPlugin(new webpack.DefinePlugin({
         'process.env.DEBUG': Boolean(process.env.DEBUG),
         'process.env.GA_ID': `"${process.env.GA_ID || 'UA-000000-01'}"`,
         'process.env.GTM_ENV_AUTH': `"${process.env.GTM_ENV_AUTH || ''}"`,
-        'process.env.GTM_ID': process.env.GTM_ID ? `"${process.env.GTM_ID}"` : null
+        'process.env.GTM_ID': process.env.GTM_ID ? `"${process.env.GTM_ID}"` : null,
+        'process.env.PUBLIC_PATH': JSON.stringify(process.env.PUBLIC_PATH || '/')
     }))
+    .addPlugin(new PatchWorkerPlugin())
     .addPlugin(new CopyWebpackPlugin({
         patterns: [
             {
@@ -102,7 +158,23 @@ const baseConfig = new ScratchWebpackConfigBuilder(
                 to: 'chunks/mediapipe/face_detection'
             }
         ]
-    }));
+    }))
+    .addModuleRule({
+        test: /\.svelte$/,
+        use: {
+            loader: 'svelte-loader',
+            options: {
+                preprocess: createSveltePreprocessor(),
+            }
+        },
+        include: [
+            path.resolve(__dirname, 'src'),
+            path.resolve(__dirname, 'node_modules', 'scratch-vm', 'src'),
+            path.resolve(__dirname, '..', 'scratch-vm', 'src'),
+            path.resolve(__dirname, 'node_modules', 'scratch-blocks', 'src'),
+            path.resolve(__dirname, '..', 'scratch-blocks', 'src'),
+        ]
+    });
 
 if (!process.env.CI) {
     baseConfig.addPlugin(new webpack.ProgressPlugin());
@@ -149,7 +221,14 @@ const distStandaloneConfig = baseConfig.clone()
 
 // build the examples and debugging tools in `build/`
 const buildConfig = baseConfig.clone()
-    .enableDevServer(process.env.PORT || 8601)
+    .enableDevServer(process.env.PORT || 8602)
+    .merge({
+    watchOptions: {
+            ignored: [
+                path.resolve(__dirname, '../../node_modules/scratch-storage/dist/web/**')
+            ]
+        }
+    })
     .merge({
         entry: {
             gui: './src/playground/index.jsx',
@@ -172,7 +251,7 @@ const buildConfig = baseConfig.clone()
         ...commonHtmlWebpackPluginOptions,
         chunks: ['gui'],
         template: 'src/playground/index.ejs',
-        title: 'Scratch 3.0 GUI'
+        title: 'PRG AI Blocks'
     }))
     .addPlugin(new HtmlWebpackPlugin({
         ...commonHtmlWebpackPluginOptions,
@@ -186,21 +265,21 @@ const buildConfig = baseConfig.clone()
         chunks: ['blocksonly'],
         filename: 'blocks-only.html',
         template: 'src/playground/index.ejs',
-        title: 'Scratch 3.0 GUI: Blocks Only Example'
+        title: 'PRG AI Blocks: Blocks Only Example'
     }))
     .addPlugin(new HtmlWebpackPlugin({
         ...commonHtmlWebpackPluginOptions,
         chunks: ['compatibilitytesting'],
         filename: 'compatibility-testing.html',
         template: 'src/playground/index.ejs',
-        title: 'Scratch 3.0 GUI: Compatibility Testing'
+        title: 'PRG AI Blocks: Compatibility Testing'
     }))
     .addPlugin(new HtmlWebpackPlugin({
         ...commonHtmlWebpackPluginOptions,
         chunks: ['player'],
         filename: 'player.html',
         template: 'src/playground/index.ejs',
-        title: 'Scratch 3.0 GUI: Player Example'
+        title: 'PRG AI Blocks: Player Example'
     }))
     .addPlugin(new CopyWebpackPlugin({
         patterns: [

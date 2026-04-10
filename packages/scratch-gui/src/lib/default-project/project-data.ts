@@ -1,6 +1,6 @@
 import projectDataMessages from './messages';
 import sharedMessages from '../shared-messages';
-import {MessageObject, TranslatorFunction} from '../../gui-config';
+import {type MessageObject, type TranslatorFunction} from '../../gui-config';
 
 const messages = {...projectDataMessages, ...sharedMessages};
 
@@ -62,13 +62,13 @@ const projectData = (translateFunction?: TranslatorFunction): object => {
                 currentCostume: 0,
                 costumes: [
                     {
-                        assetId: 'bcf454acf82e4504149f7ffe07081dbc',
+                        assetId: 'b7853f557e4426412e64bb3da6531a99',
                         name: translator(messages.costume, {index: 1}),
                         bitmapResolution: 1,
-                        md5ext: 'bcf454acf82e4504149f7ffe07081dbc.svg',
+                        md5ext: 'b7853f557e4426412e64bb3da6531a99.svg',
                         dataFormat: 'svg',
-                        rotationCenterX: 48,
-                        rotationCenterY: 50
+                        rotationCenterX: 128,
+                        rotationCenterY: 145
                     },
                     {
                         assetId: '0fb9be3e8397c983338cb71dc84d0b25',
@@ -76,19 +76,19 @@ const projectData = (translateFunction?: TranslatorFunction): object => {
                         bitmapResolution: 1,
                         md5ext: '0fb9be3e8397c983338cb71dc84d0b25.svg',
                         dataFormat: 'svg',
-                        rotationCenterX: 46,
-                        rotationCenterY: 53
+                        rotationCenterX: 128,
+                        rotationCenterY: 145
                     }
                 ],
                 sounds: [
                     {
-                        assetId: '83c36d806dc92327b9e7049a565c6bff',
-                        name: translator(messages.meow),
+                        assetId: '93c36d806dc92327b9e7049a565c6bff',
+                        name: 'Robot',
                         dataFormat: 'wav',
                         format: '',
                         rate: 22050,
                         sampleCount: 18688,
-                        md5ext: '83c36d806dc92327b9e7049a565c6bff.wav'
+                        md5ext: '93c36d806dc92327b9e7049a565c6bff.wav'
                     }
                 ],
                 volume: 100,

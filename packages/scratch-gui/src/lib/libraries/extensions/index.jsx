@@ -1,5 +1,17 @@
+/* DO NOT REMOVE */
+import generatedDetails from '../../../generated/prg/details.generated';
+/* DO NOT REMOVE */
+
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import { FormattedMessage } from 'react-intl';
+
+import arduinoRobotIconURL from './arduino_extension/arduino_extension.png';
+import arduinoRobotInsetIconURL from './arduino_extension/arduino_small.svg';
+
+import microbitRobotIconURL from './arduino_extension/microbot_extension.png';
+
+import gizmoRobotIconURL from './arduino_extension/gizmo_extension.png';
+import gizmoRobotInsetIconURL from './arduino_extension/gizmo_small.png';
 
 import musicIconURL from './music/music.png';
 import musicInsetIconURL from './music/music-small.svg';
@@ -46,10 +58,96 @@ import gdxforInsetIconURL from './gdxfor/gdxfor-small.svg';
 import gdxforConnectionIconURL from './gdxfor/gdxfor-illustration.svg';
 import gdxforConnectionSmallIconURL from './gdxfor/gdxfor-small.svg';
 
+import musicCreationIconURL from './music/music.png';
+import musicCreationInsetIconURL from './music/music-small.svg';
 import faceSensingIconURL from './faceSensing/faceSensing.png';
 import faceSensingInsetIconURL from './faceSensing/faceSensing-small.svg';
 
 export default [
+    /* DO NOT REMOVE */
+    ...generatedDetails,
+    /* DO NOT REMOVE */
+    {
+        name: 'Music Creation',
+        extensionId: 'musiccreation',
+        iconURL: musicCreationIconURL,
+        insetIconURL: musicCreationInsetIconURL,
+        description: (
+            <FormattedMessage
+                defaultMessage="Create music of your choice."
+                description="my block"
+                id="gui.extension.musiccreation.description"
+            />
+        ),
+        featured: true,
+        disabled: false,
+        internetConnectionRequired: true,
+        bluetoothRequired: false,
+        helpLink: 'https://scratch.mit.edu/wedo'
+
+    },
+    {
+        name: (
+            <FormattedMessage
+                defaultMessage="PRG Microbit Robot"
+                description="Name for the 'Microbit Robot' Extension"
+                id="gui.extension.microbit-robot.name"
+            />
+        ),
+        extensionId: 'microbitRobot',
+        iconURL: microbitRobotIconURL,
+        insetIconURL: microbitInsetIconURL,
+        description: (
+            <FormattedMessage
+                defaultMessage="Use Scratch to program a Microbit smart car robot"
+                description="PRG Microbit Robot description"
+                id="gui.extension.microbit-robot.description"
+            />
+        ),
+        featured: true,
+        tags: ["Made by PRG"]
+    },
+    {
+        name: (
+            <FormattedMessage
+                defaultMessage="PRG Gizmo Robot"
+                description="Name for the 'Gizmo Robot' Extension"
+                id="gui.extension.gizmo-robot.name"
+            />
+        ),
+        extensionId: 'gizmoRobot',
+        iconURL: gizmoRobotIconURL,
+        insetIconURL: gizmoRobotInsetIconURL,
+        description: (
+            <FormattedMessage
+                defaultMessage="Use Scratch to program the Gizmo robot"
+                description="PRG Gizmo Robot description"
+                id="gui.extension.gizmo-robot.description"
+            />
+        ),
+        featured: true,
+        tags: ["Made by PRG"]
+    }, {
+        name: (
+            <FormattedMessage
+                defaultMessage="PRG Arduino Robot"
+                description="Name for the 'Arduino Robot' Extension"
+                id="gui.extension.arduino-robot.name"
+            />
+        ),
+        extensionId: 'arduinoRobot',
+        iconURL: arduinoRobotIconURL,
+        insetIconURL: arduinoRobotInsetIconURL,
+        description: (
+            <FormattedMessage
+                defaultMessage="Use Scratch to program an Arduino smart car robot"
+                description="PRG Arduino Robot Car description"
+                id="gui.extension.arduino-robot.description"
+            />
+        ),
+        featured: true,
+        tags: ["Made by PRG"]
+    }, //*/ // RANDI Removing extensions I don't want students to play with
     {
         name: (
             <FormattedMessage
@@ -68,7 +166,8 @@ export default [
                 id="gui.extension.music.description"
             />
         ),
-        featured: true
+        featured: true,
+        tags: ["Made by Scratch"]
     },
     {
         name: (
@@ -88,7 +187,8 @@ export default [
                 id="gui.extension.pen.description"
             />
         ),
-        featured: true
+        featured: true,
+        tags: ["Made by Scratch"]
     },
     {
         name: (
@@ -108,7 +208,8 @@ export default [
                 id="gui.extension.videosensing.description"
             />
         ),
-        featured: true
+        featured: true,
+        tags: ["Made by Scratch"]
     },
     {
         name: (
@@ -150,7 +251,8 @@ export default [
             />
         ),
         featured: true,
-        internetConnectionRequired: true
+        internetConnectionRequired: true,
+        tags: ["Made by Scratch"]
     },
     {
         name: (
@@ -172,7 +274,8 @@ export default [
             />
         ),
         featured: true,
-        internetConnectionRequired: true
+        internetConnectionRequired: true,
+        tags: ["Made by Scratch"]
     },
     {
         name: 'Makey Makey',
@@ -187,7 +290,8 @@ export default [
                 id="gui.extension.makeymakey.description"
             />
         ),
-        featured: true
+        featured: true,
+        tags: ["Made by Scratch"]
     },
     {
         name: 'micro:bit',
@@ -231,7 +335,8 @@ export default [
                 id="gui.extension.microbit.connectingMessage"
             />
         ),
-        helpLink: 'https://scratch.mit.edu/microbit'
+        helpLink: 'https://scratch.mit.edu/microbit',
+        tags: ["Made by Scratch"]
     },
     {
         name: 'Go Direct Force & Acceleration',
@@ -319,7 +424,8 @@ export default [
                 id="gui.extension.ev3.connectingMessage"
             />
         ),
-        helpLink: 'https://scratch.mit.edu/ev3'
+        helpLink: 'https://scratch.mit.edu/ev3',
+        tags: ["Made by Scratch"]
     },
     {
         name: 'LEGO BOOST',
@@ -365,7 +471,8 @@ export default [
                 id="gui.extension.boost.connectingMessage"
             />
         ),
-        helpLink: 'https://scratch.mit.edu/boost'
+        helpLink: 'https://scratch.mit.edu/boost',
+        tags: ["Made by Scratch"]
     },
     {
         name: 'LEGO Education WeDo 2.0',
