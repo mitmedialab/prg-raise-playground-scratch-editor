@@ -60,6 +60,8 @@ const messages = defineMessages({
 const ALL_TAG = {tag: 'all', intlLabel: messages.allTag};
 const tagListPrefix = [ALL_TAG];
 
+const doNotInclude = ["microbitRobot", "gizmoRobot", "arduinoRobot", "simpleprg95grpexample", "projectProbe", "onnxTest", "extensionProbe", "complexprg95grpexample", "appinventorprg95grpexample"]
+
 // Membership tag manually added to the tag list if any member-only assets are present.
 // Member-only assets are displayed as a separate tag to allow users to filter by them.
 const MEMBERSHIP_TAG = {tag: 'membership', intlLabel: messages.membershipTag};
@@ -241,8 +243,9 @@ class LibraryComponent extends React.Component {
     }
     getFilteredData () {
         if (this.state.selectedTag === ALL_TAG.tag) {
-            if (!this.state.filterQuery) return this.props.data;
+            if (!this.state.filterQuery) return this.props.data.filter(dataItem => (!doNotInclude.includes(dataItem.extensionId)));
             return this.props.data.filter(dataItem => (
+                !doNotInclude.includes(dataItem.extensionId) &&
                 (dataItem.tags || [])
                     // Second argument to map sets `this`
                     .map(String.prototype.toLowerCase.call, String.prototype.toLowerCase)
@@ -257,6 +260,7 @@ class LibraryComponent extends React.Component {
             ));
         }
         return this.props.data.filter(dataItem => (
+            !doNotInclude.includes(dataItem.extensionId) &&
             dataItem.tags &&
             dataItem.tags
                 .map(String.prototype.toLowerCase.call, String.prototype.toLowerCase)
